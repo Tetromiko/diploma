@@ -43,14 +43,6 @@ export default function RootLayout() {
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen
-                name="chats/[id]"
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="profile/settings"
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
                 name="+not-found"
                 options={{ headerShown: false }}
               />

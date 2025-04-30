@@ -6,3 +6,5 @@ export const CURRENT_USER = {
 };
 
 export const CURRENT_USER_ID = CURRENT_USER.id;
+
+//4 8 12 24 32 48 64 72 80 96 128

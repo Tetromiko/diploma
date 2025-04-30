@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { Ionicons, MaterialIcons, Octicons } from "@expo/vector-icons";
 
 const setting = [
   {
@@ -10,18 +10,22 @@ const setting = [
       {
         icon: "drive-file-rename-outline",
         label: "Змінити нікнейм",
+        route: "nickname",
       },
       {
         icon: "description",
         label: "Змінити опис користувача",
+        route: "description",
       },
       {
         icon: "private-connectivity",
         label: "Конфіденційність облікового запису",
+        route: "privacy",
       },
       {
         icon: "block",
         label: "Заблоковані користувачі",
+        route: "blocked",
       },
     ],
   },
@@ -56,11 +60,15 @@ const setting = [
     ],
   },
   {
-    category: "Вхід",
+    category: "Акаунт",
     options: [
       {
         icon: "logout",
         label: "Вийти",
+      },
+      {
+        icon: "delete-sweep",
+        label: "Видалити акаунт",
       },
     ],
   },
@@ -68,12 +76,15 @@ const setting = [
 
 export default function SettingsScreen() {
   const router = useRouter();
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.actionIcon}
-          onPress={() => router.back()}
+          onPress={() => {
+            router.replace("/profile");
+          }}
         >
           <Ionicons name="arrow-back" size={32} color="#222" />
         </TouchableOpacity>
@@ -89,7 +100,11 @@ export default function SettingsScreen() {
                 item.options.map((option, idx) => (
                   <TouchableOpacity
                     onPress={() => {
-                      alert(`Selected: ${option.label}`);
+                      if (option.route) {
+                        router.push(`/profile/settings/${option.route}`);
+                      } else {
+                        console.log("No route defined for this option.");
+                      }
                     }}
                     key={idx}
                     style={styles.option}
@@ -148,7 +163,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#cecece",
     gap: 8,
-    //4 8 12 24 32 48 64 72 80 96 128
   },
   categoryTitle: {
     fontSize: 14,

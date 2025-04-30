@@ -9,7 +9,8 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   const segments = useSegments();
   const page = segments[segments.length - 1];
-  const pagesToHideTabBar = ["settings", "[chatId]"];
+  const pagesToShowTabBar = ["(tabs)", "explore", "chats", "profile"];
+  const hideTabBar = !pagesToShowTabBar.includes(page);
 
   return (
     <Tabs
@@ -20,7 +21,7 @@ export default function TabLayout() {
           height: 64,
           borderTopWidth: 1,
           borderTopColor: "#cecece",
-          display: pagesToHideTabBar.includes(page) ? "none" : "flex",
+          display: hideTabBar ? "none" : "flex",
         },
         tabBarItemStyle: {
           height: 64,

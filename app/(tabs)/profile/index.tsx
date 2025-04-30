@@ -10,13 +10,7 @@ import {
 import { AntDesign, Octicons } from "@expo/vector-icons";
 import { FlatList } from "react-native-gesture-handler";
 import { Post } from "@/components/Post";
-import {
-  Posts,
-  UsersPublic,
-  MyPosts,
-  LikedPosts,
-  SavedPosts,
-} from "@/constants/data";
+import { UsersPublic, MyPosts, LikedPosts, SavedPosts } from "@/constants/data";
 import { CURRENT_USER_ID } from "@/constants/user";
 import { InteractionManager } from "react-native";
 import { useRouter } from "expo-router";

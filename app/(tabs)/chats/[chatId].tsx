@@ -15,14 +15,14 @@ import { PrivateChats, UsersPublic, Messages } from "@/constants/data";
 import Chat from "@/components/Chat";
 
 export default function ChatView() {
-  const { id } = useLocalSearchParams();
+  const { chatId } = useLocalSearchParams();
   const router = useRouter();
   const [inputHeight, setInputHeight] = useState(48);
 
-  const chat = PrivateChats.find((c) => c.id === id);
+  const chat = PrivateChats.find((c) => c.id === chatId);
   const companion = UsersPublic.find((u) => u.id === chat?.companionId);
 
-  const chatMessages = Messages.filter((m) => m.chatId === id);
+  const chatMessages = Messages.filter((m) => m.chatId === chatId);
 
   return (
     <View style={styles.container}>

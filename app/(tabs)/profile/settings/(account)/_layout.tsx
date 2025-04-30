@@ -1,10 +1,9 @@
 import { Stack } from "expo-router";
 
-export default function ChatsLayout() {
+export default function Layout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="[chatId]" />
+      <Stack.Screen name="" />
     </Stack>
   );
 }
