@@ -27,12 +27,42 @@ const setting = [
   },
   {
     category: "Налаштування додатку",
+    options: [
+      {
+        icon: "style",
+        label: "Тема інтерфейсу додатку",
+      },
+      {
+        icon: "language",
+        label: "Мова додатку",
+      },
+    ],
   },
   {
     category: "Додаткова інформація та підтримка",
+    options: [
+      {
+        icon: "report-problem",
+        label: "Повідомити про проблему",
+      },
+      {
+        icon: "privacy-tip",
+        label: "Центр конфіденційності",
+      },
+      {
+        icon: "info-outline",
+        label: "Інформація",
+      },
+    ],
   },
   {
     category: "Вхід",
+    options: [
+      {
+        icon: "logout",
+        label: "Вийти",
+      },
+    ],
   },
 ];
 
