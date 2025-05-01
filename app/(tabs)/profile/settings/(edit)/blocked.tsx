@@ -2,6 +2,7 @@ import React from "react";
 import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import UserWithButton from "@/components/UserWithButton";
 
 export default function BlockedScreen() {
   const router = useRouter();
@@ -20,7 +21,13 @@ export default function BlockedScreen() {
         <Text style={styles.headerTitle}>Заблоковані користувачі</Text>
         <View style={styles.actionIcon}></View>
       </View>
-      <View style={styles.body}></View>
+      <View style={styles.body}>
+        <UserWithButton
+          userId="1"
+          onPress={() => {}}
+          buttonText="Розблокувати"
+        />
+      </View>
     </View>
   );
 }

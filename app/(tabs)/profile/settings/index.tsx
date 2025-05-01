@@ -48,14 +48,17 @@ const setting = [
       {
         icon: "report-problem",
         label: "Повідомити про проблему",
+        route: "report",
       },
       {
         icon: "privacy-tip",
         label: "Центр конфіденційності",
+        route: "privacy",
       },
       {
         icon: "info-outline",
         label: "Інформація",
+        route: "information",
       },
     ],
   },
