@@ -39,13 +39,11 @@ export default function RootLayout() {
     <ContextMenuProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
-          <SafeAreaView style={{ flex: 1, backgroundColor: "#f6f6f6" }}>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="+not-found"
-                options={{ headerShown: false }}
-              />
+          <SafeAreaView style={{ flex: 1 }}>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="+not-found" />
+              <Stack.Screen name="authorization" />
             </Stack>
             <StatusBar style="auto" />
           </SafeAreaView>

@@ -8,11 +8,11 @@ import { Post } from "@/components/Post";
 import { Posts, UsersPublic } from "@/constants/data";
 
 export default function ProfileScreen() {
-  const { id } = useLocalSearchParams();
+  const { userId } = useLocalSearchParams();
   const router = useRouter();
 
-  const user = UsersPublic.find((u) => u.id === id);
-  const posts = Posts.filter((p) => p.ownerId === id);
+  const user = UsersPublic.find((u) => u.id === userId);
+  const posts = Posts.filter((p) => p.ownerId === userId);
 
   return (
     <>
@@ -29,7 +29,7 @@ export default function ProfileScreen() {
               if (router.canGoBack()) {
                 router.back();
               } else {
-                router.replace("/chats");
+                router.push("/");
               }
             }}
           >

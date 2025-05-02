@@ -1,34 +1,7 @@
 import React, { useState, useContext } from "react";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { IconWithBadge } from "@/components/IconWithBadge";
-import { PostStack } from "@/components/PostStack";
-import { ContextMenuContext } from "@/contexts/ContextMenuContext";
-import { Posts, UsersPublic } from "@/constants/data";
-import { CURRENT_USER_ID } from "@/constants/user";
+import { StyleSheet, View } from "react-native";
 
-const FEED_OPTIONS = [
-  { key: "Home", label: "Delagram" },
-  { key: "Followed", label: "Followed" },
-  {
-    key: "Friends",
-    label: "Friends",
-  },
-];
-
-export default function HomeScreen() {
-  const [selectedFeed, setSelectedFeed] = useState(FEED_OPTIONS[0]);
-  const { showMenu } = useContext(ContextMenuContext);
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const notMyPosts = Posts.filter((p) => p.ownerId !== CURRENT_USER_ID);
-  const shuffled = [...notMyPosts].sort(() => Math.random() - 0.5).slice(0, 4);
-  const posts = shuffled.map((item) => ({
-    ...item,
-    avatar: UsersPublic.find((u) => u.id === item.ownerId)?.avatar || "",
-    nickname: UsersPublic.find((u) => u.id === item.ownerId)?.nickname || "",
-  }));
-
+export default function NotificationsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}></View>

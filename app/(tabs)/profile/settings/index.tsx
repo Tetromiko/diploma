@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter, router } from "expo-router";
 import { Ionicons, MaterialIcons, Octicons } from "@expo/vector-icons";
 
 const setting = [
@@ -68,6 +68,9 @@ const setting = [
       {
         icon: "logout",
         label: "Вийти",
+        action: () => {
+          router.replace("/authorization/login");
+        },
       },
       {
         icon: "delete-sweep",
@@ -105,8 +108,12 @@ export default function SettingsScreen() {
                     onPress={() => {
                       if (option.route) {
                         router.push(`/profile/settings/${option.route}`);
+                      } else if (option.action) {
+                        option.action();
                       } else {
-                        console.log("No route defined for this option.");
+                        console.log(
+                          "No action or route defined for this option."
+                        );
                       }
                     }}
                     key={idx}

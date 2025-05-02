@@ -1,12 +1,10 @@
 import { Tabs } from "expo-router";
 import React from "react";
-import { useColorScheme } from "@/hooks/useColorScheme";
 import { Octicons } from "@expo/vector-icons";
 import { IconWithBadge } from "@/components/IconWithBadge";
 import { useSegments } from "expo-router";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
   const segments = useSegments();
   const page = segments[segments.length - 1];
   const pagesToShowTabBar = ["(tabs)", "explore", "chats", "profile"];

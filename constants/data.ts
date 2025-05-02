@@ -1,4 +1,3 @@
-// UsersPublic: публічна інформація користувачів
 export const UsersPublic = [
   {
     id: "1",
@@ -31,16 +30,18 @@ export const UsersPublic = [
     bio: "Технологічний ентузіаст та стартапер",
   },
 ];
+/*
+Title
+@post: id
+@message: id
 
-// CurrentUserPrivate: приватна інформація поточного користувача
-export const CurrentUserPrivate = {
-  id: "1",
-  email: "john@example.com",
-  phone: "+380111111111",
-  settings: { theme: "light" },
-};
+дискусія 
+чат - набір повідомлень
+притватний чат - має двох учасників
+група - має довільну кількість учасників
+чат щодо поста - має необмежену нефіксовано кількість учасників вони не записуються як учасники
+*/
 
-// Posts: пости користувачів, ownerId — це і є автор (власник)
 export const Posts = [
   {
     id: "1",
@@ -65,26 +66,18 @@ export const Posts = [
   },
 ];
 
-// Списки id постів для поточного користувача
 export const MyPostIds = Posts.filter((p) => p.ownerId === "1").map(
   (p) => p.id
 );
 
-export const LikedPostIds = [
-  "2", // приклад: користувач вподобав пост з id "2"
-  "3",
-];
+export const LikedPostIds = ["2", "3"];
 
-export const SavedPostIds = [
-  "1", // приклад: користувач зберіг пост з id "1"
-  "3",
-];
+export const SavedPostIds = ["1", "3"];
 
 export const MyPosts = Posts.filter((p) => MyPostIds.includes(p.id));
 export const LikedPosts = Posts.filter((p) => LikedPostIds.includes(p.id));
 export const SavedPosts = Posts.filter((p) => SavedPostIds.includes(p.id));
 
-// Chats: чати між користувачами по дефолту мають користувача що зайшов в систему
 export const Chats = [
   {
     id: "1",
@@ -98,7 +91,6 @@ export const Chats = [
   },
 ];
 
-// PrivateChats: тільки id співрозмовника (companionId) і chatId
 export const PrivateChats = [
   {
     id: "1",
@@ -122,9 +114,7 @@ export const PrivateChats = [
   },
 ];
 
-// Messages: всі повідомлення, нові мають read: false
 export const Messages = [
-  // Старі повідомлення (прочитані)
   {
     id: "1",
     chatId: "1",
@@ -189,7 +179,6 @@ export const Messages = [
     time: "14:01",
     read: true,
   },
-  // Нові повідомлення (непрочитані)
   {
     id: "101",
     chatId: "1",
@@ -216,14 +205,6 @@ export const Messages = [
   },
 ];
 
-export const FollowingIds = [
-  "2", // ми підписані на користувача 2 (друг)
-  "3", // ми підписані на користувача 3 (друг)
-  "4", // ми підписані на користувача 4 (не друг)
-];
+export const FollowingIds = ["2", "3", "4"];
 
-export const FollowerIds = [
-  "2", // користувач 2 підписаний на нас (друг)
-  "3", // користувач 3 підписаний на нас (друг)
-  "5", // користувач 5 підписаний на нас (не друг)
-];
+export const FollowerIds = ["2", "3", "5"];
