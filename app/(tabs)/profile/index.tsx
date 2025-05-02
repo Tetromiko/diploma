@@ -10,7 +10,14 @@ import {
 import { AntDesign, Octicons } from "@expo/vector-icons";
 import { FlatList } from "react-native-gesture-handler";
 import { Post } from "@/components/Post";
-import { UsersPublic, MyPosts, LikedPosts, SavedPosts } from "@/constants/data";
+import {
+  UsersPublic,
+  MyPosts,
+  LikedPosts,
+  SavedPosts,
+  FollowingIds,
+  FollowerIds,
+} from "@/constants/data";
 import { CURRENT_USER_ID } from "@/constants/user";
 import { InteractionManager } from "react-native";
 import { useRouter } from "expo-router";
@@ -52,7 +59,9 @@ export default function ProfileScreen() {
 
   const currentUser = UsersPublic.find((u) => u.id === CURRENT_USER_ID);
 
-  // Вибірка постів для кожної категорії
+  const friends =
+    FollowingIds.filter((id) => FollowerIds.includes(id)).length || 0;
+
   let filteredPosts = [];
   if (activeTab === "пости") {
     filteredPosts = MyPosts;
@@ -86,18 +95,33 @@ export default function ProfileScreen() {
         <View style={styles.infoBlock}>
           <Text style={styles.userName}>{currentUser?.nickname || "User"}</Text>
           <View style={styles.relations}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>120</Text>
+            <TouchableOpacity
+              style={styles.statItem}
+              onPress={() => {
+                router.push("/profile/friends");
+              }}
+            >
+              <Text style={styles.statNumber}>{friends}</Text>
               <Text style={styles.statLabel}>Друзі</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>80</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.statItem}
+              onPress={() => {
+                router.push("/profile/following");
+              }}
+            >
+              <Text style={styles.statNumber}>{FollowingIds.length}</Text>
               <Text style={styles.statLabel}>Підписки</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>150</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.statItem}
+              onPress={() => {
+                router.push("/profile/followers");
+              }}
+            >
+              <Text style={styles.statNumber}>{FollowerIds.length}</Text>
               <Text style={styles.statLabel}>Підписники</Text>
-            </View>
+            </TouchableOpacity>
           </View>
           <View style={styles.biographyContainer}>
             <Text style={styles.biographyText}>
