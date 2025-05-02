@@ -29,6 +29,18 @@ export const UsersPublic = [
     avatar: "https://avatar.iran.liara.run/public?5",
     bio: "Технологічний ентузіаст та стартапер",
   },
+  {
+    id: "6",
+    nickname: "Том Круз",
+    avatar: "https://avatar.iran.liara.run/public?6",
+    bio: "Кінорежисер та сценарист",
+  },
+  {
+    id: "7",
+    nickname: "Емма Стоун",
+    avatar: "https://avatar.iran.liara.run/public?7",
+    bio: "Актриса та модель",
+  },
 ];
 /*
 Title
@@ -208,3 +220,20 @@ export const Messages = [
 export const FollowingIds = ["2", "3", "4"];
 
 export const FollowerIds = ["2", "3", "5"];
+
+export const BlockedIds = ["6", "7"];
+
+export const Notifications = [
+  {
+    id: "1",
+    type: "subscription",
+    userId: "2",
+    createdAt: "2024-06-01T12:00:00Z",
+  },
+  {
+    id: "2",
+    type: "friend",
+    userId: "3",
+    createdAt: "2024-06-02T13:00:00Z",
+  },
+];

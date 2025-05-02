@@ -3,9 +3,18 @@ import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import UserWithButton from "@/components/UserWithButton";
+import { BlockedIds } from "@/constants/data";
 
 export default function BlockedScreen() {
   const router = useRouter();
+
+  const toggleUserBlock = (userId: string) => {
+    console.log(`Toggling block status for user: ${userId}`);
+  };
+
+  const isUserBlocked = (userId: string) => {
+    return BlockedIds.includes(userId);
+  };
 
   return (
     <View style={styles.container}>
@@ -22,11 +31,37 @@ export default function BlockedScreen() {
         <View style={styles.actionIcon}></View>
       </View>
       <View style={styles.body}>
-        <UserWithButton
-          userId="1"
-          onPress={() => {}}
-          buttonText="Розблокувати"
-        />
+        {BlockedIds.map((userId) => {
+          return (
+            <UserWithButton
+              key={userId}
+              userId={userId}
+              button={
+                <TouchableOpacity
+                  style={
+                    isUserBlocked(userId)
+                      ? styles.buttonBlock
+                      : styles.buttonUnBlocked
+                  }
+                  onPress={() => {
+                    toggleUserBlock(userId);
+                  }}
+                >
+                  <Text
+                    style={
+                      isUserBlocked(userId)
+                        ? styles.unBlockButtonText
+                        : styles.blockButtonText
+                    }
+                  >
+                    {isUserBlocked(userId) ? "Розблокувати" : "Заблокувати"}
+                  </Text>
+                </TouchableOpacity>
+              }
+              description="ви тепер друзі"
+            />
+          );
+        })}
       </View>
     </View>
   );
@@ -61,5 +96,37 @@ const styles = StyleSheet.create({
   body: {
     gap: 16,
     padding: 16,
+  },
+  buttonBlock: {
+    backgroundColor: "#ffffff",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#cecece",
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  buttonUnBlocked: {
+    backgroundColor: "#7eaaed",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  blockButtonText: {
+    fontSize: 16,
+    fontWeight: "400",
+    color: "#ffffff",
+    textAlign: "center",
+  },
+  unBlockButtonText: {
+    fontSize: 16,
+    fontWeight: "400",
+    color: "#808080",
+    textAlign: "center",
   },
 });
