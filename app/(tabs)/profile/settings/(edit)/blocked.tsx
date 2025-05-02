@@ -50,8 +50,8 @@ export default function BlockedScreen() {
                   <Text
                     style={
                       isUserBlocked(userId)
-                        ? styles.unBlockButtonText
-                        : styles.blockButtonText
+                        ? styles.blockButtonText
+                        : styles.unblockButtonText
                     }
                   >
                     {isUserBlocked(userId) ? "Розблокувати" : "Заблокувати"}
@@ -117,13 +117,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  blockButtonText: {
+  unblockButtonText: {
     fontSize: 16,
     fontWeight: "400",
     color: "#ffffff",
     textAlign: "center",
   },
-  unBlockButtonText: {
+  blockButtonText: {
     fontSize: 16,
     fontWeight: "400",
     color: "#808080",

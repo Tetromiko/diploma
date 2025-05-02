@@ -2,42 +2,49 @@ export const UsersPublic = [
   {
     id: "1",
     nickname: "Джон Доу",
+    name: "Любитель кави",
     avatar: "https://avatar.iran.liara.run/public?1",
     bio: "Розробник ПЗ, музикант, художник та поціновувач кави",
   },
   {
     id: "2",
     nickname: "Джейн Сміт",
+    name: "Джейн мандрінвиця",
     avatar: "https://avatar.iran.liara.run/public?2",
     bio: "Люблю подорожі та книги",
   },
   {
     id: "3",
     nickname: "Аліса Джонсон",
+    name: "Аліса",
     avatar: "https://avatar.iran.liara.run/public?3",
     bio: "Фотограф та мандрівниця",
   },
   {
     id: "4",
     nickname: "Боб Мартін",
+    name: "Равлик Боб",
     avatar: "https://avatar.iran.liara.run/public?4",
     bio: "Спортсмен та фітнес-тренер",
   },
   {
     id: "5",
     nickname: "Сара Коннор",
+    name: "Коннор із Детройту",
     avatar: "https://avatar.iran.liara.run/public?5",
     bio: "Технологічний ентузіаст та стартапер",
   },
   {
     id: "6",
     nickname: "Том Круз",
+    name: "Просто Том Круз",
     avatar: "https://avatar.iran.liara.run/public?6",
     bio: "Кінорежисер та сценарист",
   },
   {
     id: "7",
     nickname: "Емма Стоун",
+    name: "Емма із сутінок",
     avatar: "https://avatar.iran.liara.run/public?7",
     bio: "Актриса та модель",
   },
@@ -219,7 +226,7 @@ export const Messages = [
 
 export const FollowingIds = ["2", "3", "4"];
 
-export const FollowerIds = ["2", "3", "5"];
+export const FollowersIds = ["2", "3", "5"];
 
 export const BlockedIds = ["6", "7"];
 

@@ -16,7 +16,7 @@ import {
   LikedPosts,
   SavedPosts,
   FollowingIds,
-  FollowerIds,
+  FollowersIds,
 } from "@/constants/data";
 import { CURRENT_USER_ID } from "@/constants/user";
 import { InteractionManager } from "react-native";
@@ -60,7 +60,11 @@ export default function ProfileScreen() {
   const currentUser = UsersPublic.find((u) => u.id === CURRENT_USER_ID);
 
   const friends =
-    FollowingIds.filter((id) => FollowerIds.includes(id)).length || 0;
+    FollowingIds.filter((id) => FollowersIds.includes(id)).length || 0;
+  const followers =
+    FollowersIds.filter((id) => !FollowingIds.includes(id)).length || 0;
+  const following =
+    FollowingIds.filter((id) => !FollowersIds.includes(id)).length || 0;
 
   let filteredPosts = [];
   if (activeTab === "пости") {
@@ -110,7 +114,7 @@ export default function ProfileScreen() {
                 router.push("/profile/following");
               }}
             >
-              <Text style={styles.statNumber}>{FollowingIds.length}</Text>
+              <Text style={styles.statNumber}>{following}</Text>
               <Text style={styles.statLabel}>Підписки</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -119,7 +123,7 @@ export default function ProfileScreen() {
                 router.push("/profile/followers");
               }}
             >
-              <Text style={styles.statNumber}>{FollowerIds.length}</Text>
+              <Text style={styles.statNumber}>{followers}</Text>
               <Text style={styles.statLabel}>Підписники</Text>
             </TouchableOpacity>
           </View>
