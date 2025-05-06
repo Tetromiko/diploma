@@ -13,7 +13,7 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 export default function NicknameScreen() {
   const router = useRouter();
-  const isPasswordCorrect = true;
+  const isNickNameCorrect = true;
 
   return (
     <View style={styles.container}>
@@ -53,12 +53,12 @@ export default function NicknameScreen() {
             <View style={styles.messageContainer}>
               <MaterialIcons
                 //style={styles.messageIcon}
-                name={isPasswordCorrect ? "check-circle" : "error"}
+                name={isNickNameCorrect ? "check-circle" : "error"}
                 size={24}
-                color={isPasswordCorrect ? "#91b49d" : "#f37070"}
+                color={isNickNameCorrect ? "#91b49d" : "#f37070"}
               />
               <Text style={styles.messageText}>
-                {isPasswordCorrect
+                {isNickNameCorrect
                   ? "Введений нікнейм доступний"
                   : "На жаль, введений нікнейм зайнятий"}
               </Text>
