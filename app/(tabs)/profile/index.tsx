@@ -1,84 +1,85 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
   View,
   Image,
-  Pressable,
   TouchableOpacity,
+  Dimensions,
 } from "react-native";
 import { AntDesign, Octicons } from "@expo/vector-icons";
-import { FlatList } from "react-native-gesture-handler";
 import { Post } from "@/components/Post";
-import {
-  UsersPublic,
-  MyPosts,
-  LikedPosts,
-  SavedPosts,
-  FollowingIds,
-  FollowersIds,
-} from "@/constants/data";
-import { CURRENT_USER_ID } from "@/constants/user";
-import { InteractionManager } from "react-native";
-import { useRouter } from "expo-router";
+import { getRemoteData, postRemoteData } from "@/utils/api";
+import { useFocusEffect } from "@react-navigation/native";
+import getUserAvatar from "@/constants/user";
+import { TabView, SceneMap, TabBar } from "react-native-tab-view";
+import { UserPublic } from "../home";
+import { PostData } from "@/constants/types";
+import { router } from "expo-router";
 
-// Формуємо категорії для профілю
 const categories = [
-  { tab: "пости", icon: "three-bars" },
-  { tab: "вподобані", icon: "heart" },
-  { tab: "збережені", icon: "bookmark" },
+  { key: "created", icon: "three-bars", label: "Створені" },
+  { key: "liked", icon: "heart", label: "Вподобані" },
+  { key: "saved", icon: "bookmark", label: "Збережені" },
 ];
 
 export default function ProfileScreen() {
-  const router = useRouter();
-  const [activeTab, setActiveTab] = React.useState(categories[0].tab);
-  const [scrollOffsets, setScrollOffsets] = React.useState<{
-    [key: string]: number;
-  }>({});
-  const flatListRef = React.useRef<FlatList>(null);
+  const [userData, setUserData] = useState<UserPublic | null>(null);
+  const [createdPosts, setCreatedPosts] = useState<PostData[]>([]);
+  const [likedPosts, setLikedPosts] = useState<PostData[]>([]);
+  const [savedPosts, setSavedPosts] = useState<PostData[]>([]);
+  const [friendsCount, setFriendsCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [index, setIndex] = useState(0);
+  const [routes] = useState(categories);
 
-  React.useEffect(() => {
-    const offset = scrollOffsets[activeTab] || 0;
+  useFocusEffect(
+    React.useCallback(() => {
+      getRemoteData("/me").then((data) => setUserData(data));
+      getRemoteData("/me/interactions?type=create").then(setCreatedPosts);
+      getRemoteData("/me/interactions?type=like").then(setLikedPosts);
+      getRemoteData("/me/interactions?type=save").then(setSavedPosts);
+      getRemoteData("/me/relations?type=friends").then((data) => {
+        setFriendsCount(data.length);
+      });
+      getRemoteData("/me/relations?type=following").then((data) => {
+        setFollowingCount(data.length);
+      });
+      getRemoteData("/me/relations?type=followers").then((data) => {
+        setFollowersCount(data.length);
+      });
+    }, [])
+  );
 
-    const runScroll = () => {
-      flatListRef.current?.scrollToOffset({ offset, animated: false });
-    };
+  const renderScene = SceneMap({
+    created: () => <TabPostsList posts={createdPosts} />,
+    liked: () => <TabPostsList posts={likedPosts} />,
+    saved: () => <TabPostsList posts={savedPosts} />,
+  });
 
-    InteractionManager.runAfterInteractions(() => {
-      requestAnimationFrame(runScroll);
-    });
-  }, [activeTab]);
-
-  const handleScroll = (event: any) => {
-    const offsetY = event.nativeEvent.contentOffset?.y || 0;
-    setScrollOffsets((prev) => ({
-      ...prev,
-      [activeTab]: offsetY,
-    }));
-  };
-
-  const currentUser = UsersPublic.find((u) => u.id === CURRENT_USER_ID);
-
-  const friends =
-    FollowingIds.filter((id) => FollowersIds.includes(id)).length || 0;
-  const followers =
-    FollowersIds.filter((id) => !FollowingIds.includes(id)).length || 0;
-  const following =
-    FollowingIds.filter((id) => !FollowersIds.includes(id)).length || 0;
-
-  let filteredPosts = [];
-  if (activeTab === "пости") {
-    filteredPosts = MyPosts;
-  } else if (activeTab === "вподобані") {
-    filteredPosts = LikedPosts;
-  } else if (activeTab === "збережені") {
-    filteredPosts = SavedPosts;
+  function TabPostsList({ posts }: { posts: PostData[] }) {
+    return (
+      <View style={styles.postsContainer}>
+        {posts.length === 0 ? (
+          <View style={styles.empty}>
+            <Text style={{ color: "#7b7b7b" }}>Постів немає</Text>
+          </View>
+        ) : (
+          posts.map((item) => (
+            <View style={styles.postWrapper} key={item.id}>
+              <Post post={item} />
+            </View>
+          ))
+        )}
+      </View>
+    );
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.nickname}>Нікнейм</Text>
+        <Text style={styles.nickname}>{userData?.nickname || "nickname"}</Text>
         <View style={styles.actions}>
           <TouchableOpacity style={styles.actionIcon}>
             <AntDesign name="pluscircleo" size={32} color="#333" />
@@ -93,11 +94,12 @@ export default function ProfileScreen() {
       </View>
       <View style={styles.userInfo}>
         <Image
-          source={{ uri: currentUser?.avatar || "" }}
+          source={getUserAvatar(userData?.avatarUrl || "")}
+          resizeMode="cover"
           style={styles.profileImage}
         />
         <View style={styles.infoBlock}>
-          <Text style={styles.userName}>{currentUser?.nickname || "User"}</Text>
+          <Text style={styles.userName}>{userData?.fullName || "User"}</Text>
           <View style={styles.relations}>
             <TouchableOpacity
               style={styles.statItem}
@@ -105,7 +107,7 @@ export default function ProfileScreen() {
                 router.push("/profile/friends");
               }}
             >
-              <Text style={styles.statNumber}>{friends}</Text>
+              <Text style={styles.statNumber}>{friendsCount}</Text>
               <Text style={styles.statLabel}>Друзі</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -114,7 +116,7 @@ export default function ProfileScreen() {
                 router.push("/profile/following");
               }}
             >
-              <Text style={styles.statNumber}>{following}</Text>
+              <Text style={styles.statNumber}>{followingCount}</Text>
               <Text style={styles.statLabel}>Підписки</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -123,72 +125,44 @@ export default function ProfileScreen() {
                 router.push("/profile/followers");
               }}
             >
-              <Text style={styles.statNumber}>{followers}</Text>
+              <Text style={styles.statNumber}>{followersCount}</Text>
               <Text style={styles.statLabel}>Підписники</Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.biographyContainer}>
-            <Text style={styles.biographyText}>
-              Розробник ПЗ, музикант, художник та поціновувач кави
-            </Text>
-          </View>
+          {userData?.description && (
+            <View style={styles.biographyContainer}>
+              <Text style={styles.biographyText}>{userData?.description}</Text>
+            </View>
+          )}
         </View>
       </View>
-      <View style={styles.tabsContainer}>
-        {categories.map((tab) => (
-          <Pressable
-            key={tab.tab}
-            style={styles.tab}
-            onPress={() => setActiveTab(tab.tab)}
-          >
+      <TabView
+        commonOptions={{
+          icon: ({ route, focused }) => (
             <Octicons
-              name={tab.icon}
+              name={route.icon}
               size={24}
-              color={activeTab === tab.tab ? "#313131" : "#949494"}
+              color={focused ? "#000000" : "#808080"}
             />
-          </Pressable>
-        ))}
-      </View>
-      <FlatList
-        ref={flatListRef}
-        style={styles.postsContainer}
-        data={filteredPosts}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.postWrapper}>
-            <Post
-              post={{
-                ...item,
-                avatar:
-                  UsersPublic.find((u) => u.id === item.ownerId)?.avatar || "",
-                nickname:
-                  UsersPublic.find((u) => u.id === item.ownerId)?.nickname ||
-                  "",
-              }}
-              onMenuPress={(event: any) => {
-                const { pageX, pageY } = event.nativeEvent;
-                console.log("Menu pressed at", pageX, pageY);
-              }}
-            />
-          </View>
-        )}
-        contentContainerStyle={{ paddingBottom: 16 }}
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        ListEmptyComponent={
-          <View
+          ),
+        }}
+        navigationState={{ index, routes }}
+        renderScene={renderScene}
+        onIndexChange={setIndex}
+        renderTabBar={(props) => (
+          <TabBar
+            {...props}
+            indicatorStyle={{ height: 0 }}
             style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-              height: 200,
+              backgroundColor: "transparent",
+              shadowColor: "transparent",
+              borderBottomWidth: 1,
+              borderBottomColor: "#cecece",
+              borderTopWidth: 1,
+              borderTopColor: "#cecece",
             }}
-          >
-            <Text style={{ color: "#7b7b7b" }}>Постів немає</Text>
-          </View>
-        }
+          />
+        )}
       />
     </View>
   );
@@ -209,7 +183,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#cecece",
   },
-
   actionIcon: {
     width: 48,
     height: 48,
@@ -277,25 +250,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#313131",
   },
-  tabsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    borderBottomWidth: 1,
-    borderBottomColor: "#cecece",
-    borderTopWidth: 1,
-    borderTopColor: "#cecece",
-  },
-  tab: {
-    height: 48,
-    width: 48,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   postsContainer: {
     flex: 1,
     padding: 16,
   },
   postWrapper: {
     marginBottom: 16,
+  },
+  empty: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    height: 200,
   },
 });

@@ -7,10 +7,27 @@ import {
   StyleSheet,
   Image,
 } from "react-native";
+import { useRouter } from "expo-router";
+import { isTokenValid, postRemoteData, setToken } from "@/utils/api";
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
+
+  function loginRequest() {
+    const response = postRemoteData("/authorization/login", {
+      login: login,
+      password: password,
+    });
+    response.then((res) => {
+      setToken(res.token);
+      if (isTokenValid()) {
+        router.replace("/home");
+      }
+    });
+  }
+
   return (
     <View style={styles.container}>
       <View style={{ flex: 1, justifyContent: "space-around" }}>
@@ -37,11 +54,11 @@ export default function LoginScreen() {
                     outline: "none",
                   })
                 }
-                placeholder="Електронна пошта"
+                placeholder="Нікнейм або e-mail"
                 placeholderTextColor="#999999"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
+                value={login}
+                onChangeText={setLogin}
+                keyboardType="default"
               />
             </View>
             <View style={styles.inputContainer}>
@@ -65,13 +82,15 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.loginButtonContainer}>
-            <TouchableOpacity style={styles.loginButton}>
+            <TouchableOpacity style={styles.loginButton} onPress={loginRequest}>
               <Text style={styles.loginButtonText}>Увійти</Text>
             </TouchableOpacity>
             <View style={styles.registerContainer}>
-              <Text style={styles.registerText}>Немає акаунту?</Text>
-              <TouchableOpacity>
-                <Text style={styles.registerLink}> Зареєструватися</Text>
+              <Text style={styles.registerText}>Немає акаунту? </Text>
+              <TouchableOpacity
+                onPress={() => router.replace("/authorization/register")}
+              >
+                <Text style={styles.registerLink}>Зареєструватися</Text>
               </TouchableOpacity>
             </View>
           </View>

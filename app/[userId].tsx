@@ -1,26 +1,37 @@
-import React from "react";
-import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
+import React, { useEffect } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+  FlatList,
+} from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { Octicons, Ionicons } from "@expo/vector-icons";
 import { useRouter, Stack } from "expo-router";
-import { FlatList } from "react-native-gesture-handler";
 import { Post } from "@/components/Post";
 import { Posts, UsersPublic } from "@/constants/data";
+import { getRemoteData } from "@/utils/api";
+import { PostData, UserData, UserPublicFull } from "@/constants/types";
+import getUserAvatar from "@/constants/user";
 
 export default function ProfileScreen() {
   const { userId } = useLocalSearchParams();
   const router = useRouter();
+  const [user, setUser] = React.useState<UserPublicFull | null>(null);
+  const [posts, setPosts] = React.useState<PostData[]>([]);
+  const [avatar, setAvatar] = React.useState<any>(null);
 
-  const user = UsersPublic.find((u) => u.id === userId);
-  const posts = Posts.filter((p) => p.ownerId === userId);
+  useEffect(() => {
+    getRemoteData(`/users/${userId}`).then((data) => {
+      setUser(data);
+      console.log("User data:", data);
+    });
+  });
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: false,
-        }}
-      />
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity
@@ -47,14 +58,14 @@ export default function ProfileScreen() {
         </View>
         <View style={styles.userInfo}>
           <Image
-            source={{ uri: user?.avatar || "" }}
+            source={getUserAvatar(user?.avatarUrl || "")}
             style={styles.profileImage}
           />
           <View style={styles.infoBlock}>
-            <Text style={styles.userName}>{user?.nickname || "User"}</Text>
-            {user && (
+            <Text style={styles.userName}>{user?.fullName || "User"}</Text>
+            {user?.description && (
               <View style={styles.biographyContainer}>
-                <Text style={styles.biographyText}>{user?.bio || ""}</Text>
+                <Text style={styles.biographyText}>{user?.description}</Text>
               </View>
             )}
           </View>

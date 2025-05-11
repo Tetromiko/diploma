@@ -1,66 +1,80 @@
-import React from "react";
-import {
-  Image,
-  Text,
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
-import Message, { MessageData } from "./Message";
-import { CURRENT_USER_ID } from "@/constants/user";
-import { UsersPublic } from "@/constants/data";
+import { UserPublic } from "@/constants/types";
+import getUserAvatar from "@/constants/user";
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Image, Text, View, StyleSheet, TouchableOpacity } from "react-native";
 
-interface UserWithButtonProps {
-  userId: string;
-  button: React.ReactNode;
+export default function UserWithButton(props: {
+  userId: number;
+  button?: React.ReactNode;
   description?: string;
-}
-
-export default function UserWithButton(props: UserWithButtonProps) {
-  //get user public data by userId
+}) {
   const { button, description } = props;
-  const user = UsersPublic.find((user) => user.id === props.userId);
+
+  const [user, setUser] = useState<UserPublic | null>(null);
+
+  const avatar = getUserAvatar(user?.avatarUrl || "");
+
+  useEffect(() => {
+    fetch(`https://localhost:7232/api/users/${props.userId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setUser(data);
+      })
+      .catch((err) => {
+        console.warn("API error:", err);
+      });
+  }, [props.userId]);
+
   return (
-    <View style={{ position: "relative" }}>
-      <View style={styles.mainContainer}>
+    <View style={styles.container}>
+      <View style={styles.absoluteContainer}></View>
+      <View style={styles.userContainer}>
         <View style={styles.userDataContainer}>
-          <Image
-            source={{ uri: user?.avatar }}
-            style={styles.imageProfileStyle}
-          />
+          <TouchableOpacity
+            onPress={() => {
+              router.push(`/${user?.id}`);
+            }}
+          >
+            <Image source={avatar} style={styles.imageProfileStyle} />
+          </TouchableOpacity>
           <View style={styles.textContainer}>
-            <Text style={styles.userName}>{user ? user.nickname : "User"}</Text>
+            <Text style={styles.userName}>{user?.fullName || "user"}</Text>
             {description && (
               <Text style={styles.description}>{description}</Text>
             )}
           </View>
         </View>
-        <View style={styles.buttonContainer}>{button}</View>
+        {button && <View style={styles.buttonContainer}>{button}</View>}
       </View>
-      <View style={[styles.mainContainer, styles.absoluteContainer]}></View>
     </View>
   );
 }
 const styles = StyleSheet.create({
-  mainContainer: {
+  container: {
+    height: 72,
+  },
+  userContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
+    gap: 8,
     padding: 8,
     height: 64,
+
     backgroundColor: "#ffffff",
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "#cecece",
-    zIndex: 1,
   },
   absoluteContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#cecece",
     position: "absolute",
-    top: 8,
-    left: 0,
-    right: 0,
-    zIndex: 0,
+    height: 64,
+    width: "100%",
+    bottom: 0,
   },
   imageProfileStyle: {
     width: 48,

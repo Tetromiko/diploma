@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   StyleSheet,
   FlatList,
@@ -6,41 +6,52 @@ import {
   Text,
   TouchableOpacity,
   Pressable,
+  TextInput,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { ChatItem } from "@/components/ChatItem";
+import { ChatItem } from "@/components/ChatPreview";
 import { Octicons, AntDesign } from "@expo/vector-icons";
-import { TextInput } from "react-native-gesture-handler";
 import { ContextMenuContext } from "@/contexts/ContextMenuContext";
-import {
-  PrivateChats,
-  UsersPublic,
-  Messages,
-  FollowingIds,
-  FollowerIds,
-} from "@/constants/data";
+import { useFocusEffect } from "@react-navigation/native";
+import { getRemoteData } from "@/utils/api";
+import { ChatPreview } from "@/constants/types";
 
-const tabs = ["Всі чати", "Друзі", "Групові чати", "Дискусії"];
-
-function isFriend(userId: string) {
-  return FollowingIds.includes(userId) && FollowerIds.includes(userId);
-}
-
-function getChatList(tab: string) {
-  if (tab === "Всі чати") return PrivateChats;
-  if (tab === "Друзі")
-    return PrivateChats.filter((chat) => isFriend(chat.companionId));
-  if (tab === "Групові чати") return [];
-  if (tab === "Дискусії") return [];
-  return [];
-}
+const tabs = [
+  {
+    label: "Всі чати",
+    key: "all",
+  },
+  {
+    label: "Приватні чати",
+    key: "private",
+  },
+  { label: "Групові чати", key: "group" },
+  { label: "Дискусії", key: "discussion" },
+];
 
 export default function ChatsScreen() {
   const router = useRouter();
   const { showMenu } = useContext(ContextMenuContext);
   const [activeTab, setActiveTab] = useState(tabs[0]);
-  const chats = getChatList(activeTab);
+  const [chats, setChats] = useState<ChatPreview[]>([]);
+  const [categoryChats, setCategoryChats] = useState<ChatPreview[]>([]);
   const [inputValue, setInputValue] = useState("");
+
+  useFocusEffect(
+    React.useCallback(() => {
+      getRemoteData(`/chats`).then((data) => {
+        setChats(data);
+      });
+    }, [])
+  );
+  useEffect(() => {
+    setCategoryChats(
+      chats.filter((chat) => {
+        if (activeTab.key === "all") return true;
+        return chat.type === activeTab.key;
+      })
+    );
+  }, [activeTab, chats]);
 
   const handleDeleteChat = (chatId: string) => {
     alert(`Видалити чат ${chatId}`);
@@ -64,14 +75,14 @@ export default function ChatsScreen() {
           />
         </View>
 
-        <TouchableOpacity onPress={() => router.push("/chats/new")}>
+        <TouchableOpacity onPress={() => router.push("/chats/create")}>
           <AntDesign name="pluscircleo" size={32} color="#313131" />
         </TouchableOpacity>
       </View>
       <View style={styles.tabsContainer}>
         {tabs.map((tab) => (
           <Pressable
-            key={tab}
+            key={tab.key}
             style={[styles.tab, activeTab === tab && styles.activeTab]}
             onPress={() => setActiveTab(tab)}
           >
@@ -81,32 +92,22 @@ export default function ChatsScreen() {
                 activeTab === tab && styles.activeTabText,
               ]}
             >
-              {tab}
+              {tab.label}
             </Text>
           </Pressable>
         ))}
       </View>
       <FlatList
-        data={chats}
-        keyExtractor={(item) => item.id}
+        data={categoryChats}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => {
-          const companion = UsersPublic.find((u) => u.id === item.companionId);
-          const chatMsgs = Messages.filter((m) => m.chatId === item.id);
-          const lastMsg =
-            chatMsgs.length > 0
-              ? chatMsgs[chatMsgs.length - 1]?.text
-              : "Чат починається";
-          const unreadCount = chatMsgs
-            .filter((m) => m.chatId === item.id)
-            .filter((m) => !m.read).length;
           return (
             <ChatItem
-              unreadCount={unreadCount}
-              avatar={companion?.avatar || ""}
-              title={companion?.nickname || "Користувач"}
-              lastMessage={lastMsg}
+              unreadCount={0}
+              avatarUrl={item?.avatarUrl || ""}
+              title={item?.title || "Користувач"}
+              lastMessage={""}
               onPress={() => router.push(`/chats/${item.id}`)}
-              onAvatarPress={() => router.push(`/${companion?.id}`)}
               onLongPress={(event: any) => {
                 const { pageX, pageY } = event.nativeEvent;
                 showMenu({
@@ -187,6 +188,9 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 16,
     color: "#808080",
+    fontWeight: "400",
+  },
+  activeTabText: {
     fontWeight: "500",
   },
 });

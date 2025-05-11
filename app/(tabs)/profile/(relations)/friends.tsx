@@ -1,13 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import UserWithButton from "@/components/UserWithButton";
 import { router } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
-import { FollowingIds, FollowersIds, UsersPublic } from "@/constants/data";
+import { getRemoteData } from "@/utils/api";
+import { UserPublic } from "@/constants/types";
 
 export default function FriendsScreen() {
-  const friendsIds = FollowingIds.filter((id) => FollowersIds.includes(id));
-  const friends = UsersPublic.filter((user) => friendsIds.includes(user.id));
+  const [users, setUsers] = useState<UserPublic[] | null>(null);
+
+  useEffect(() => {
+    getRemoteData(`/me/relations?type=friends`).then(setUsers);
+  }, []);
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -23,25 +27,28 @@ export default function FriendsScreen() {
         <View style={styles.actionIcon}></View>
       </View>
       <View style={styles.body}>
-        {friends.map((user) => (
-          <UserWithButton
-            key={user.id}
-            userId={user.id}
-            description={user.name}
-            button={
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => {
-                  console.log(
-                    `Ви відписалися від користувача ${user.nickname}`
-                  );
-                }}
-              >
-                <Text style={styles.buttonText}>Відписатись</Text>
-              </TouchableOpacity>
-            }
-          />
-        ))}
+        {users && users.length > 0 ? (
+          users.map((user) => (
+            <UserWithButton
+              key={user.id}
+              userId={user.id}
+              button={
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => {
+                    router.push(`/${user.id}`);
+                  }}
+                >
+                  <Text style={styles.buttonText}>Перейти</Text>
+                </TouchableOpacity>
+              }
+            />
+          ))
+        ) : (
+          <View style={{ padding: 16, alignItems: "center" }}>
+            <Text style={{ color: "#7b7b7b" }}>Друзів немає</Text>
+          </View>
+        )}
       </View>
     </View>
   );

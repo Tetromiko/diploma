@@ -1,16 +1,20 @@
+import UserWithButton from "@/components/UserWithButton";
+import { NotificationData } from "@/constants/types";
+import { getRemoteData } from "@/utils/api";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
-import UserWithButton from "@/components/UserWithButton";
-import { UserPublic } from "@/constants/types";
-import { getRemoteData } from "@/utils/api";
+import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
 
-export default function FollowingScreen() {
-  const [users, setUsers] = useState<UserPublic[] | null>(null);
+export default function NotificationsScreen() {
+  const [notifications, setNotifications] = useState<NotificationData[] | null>(
+    null
+  );
 
   useEffect(() => {
-    getRemoteData(`/me/relations?type=following`).then(setUsers);
+    getRemoteData(`/me/notifications`).then((data) => {
+      setNotifications(data);
+    });
   }, []);
 
   return (
@@ -24,30 +28,33 @@ export default function FollowingScreen() {
         >
           <Ionicons name="arrow-back" size={32} color="#222" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Підписки</Text>
+        <Text style={styles.headerTitle}>Сповіщення</Text>
         <View style={styles.actionIcon}></View>
       </View>
       <View style={styles.body}>
-        {users && users.length > 0 ? (
-          users.map((user) => (
+        {notifications && notifications.length > 0 ? (
+          notifications.map((notification) => (
             <UserWithButton
-              key={user.id}
-              userId={user.id}
+              key={notification.user.id}
+              userId={notification.user.id}
               button={
                 <TouchableOpacity
                   style={styles.button}
                   onPress={() => {
-                    alert(`Ви більше не підписані на ${user.fullName}`);
+                    alert(`Ви підписались на ${notification.user.fullName}`);
                   }}
                 >
-                  <Text style={styles.buttonText}>Відписатись</Text>
+                  <Text style={styles.buttonText}>Підписатись</Text>
                 </TouchableOpacity>
+              }
+              description={
+                notification.type === "subscription" ? "Підписався" : ""
               }
             />
           ))
         ) : (
           <View style={{ padding: 16, alignItems: "center" }}>
-            <Text style={{ color: "#7b7b7b" }}>Підписок немає</Text>
+            <Text style={{ color: "#7b7b7b" }}>Сповіщень немає</Text>
           </View>
         )}
       </View>
@@ -100,5 +107,9 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "500",
+  },
+  fireworkImage: {
+    width: 32,
+    height: 32,
   },
 });

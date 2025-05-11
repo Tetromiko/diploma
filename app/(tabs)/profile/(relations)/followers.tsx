@@ -1,14 +1,18 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
-import { FollowersIds, FollowingIds, UsersPublic } from "@/constants/data";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import UserWithButton from "@/components/UserWithButton";
+import { getRemoteData } from "@/utils/api";
+import { UserPublic } from "@/constants/types";
 
 export default function FollowersScreen() {
-  const followers = UsersPublic.filter(
-    (user) => FollowersIds.includes(user.id) && !FollowingIds.includes(user.id)
-  );
+  const [users, setUsers] = useState<UserPublic[] | null>(null);
+
+  useEffect(() => {
+    getRemoteData(`/me/relations?type=followers`).then(setUsers);
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -24,25 +28,28 @@ export default function FollowersScreen() {
         <View style={styles.actionIcon}></View>
       </View>
       <View style={styles.body}>
-        {followers.map((user) => (
-          <UserWithButton
-            key={user.id}
-            userId={user.id}
-            description={user.name}
-            button={
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => {
-                  console.log(
-                    `Ви відписалися від користувача ${user.nickname}`
-                  );
-                }}
-              >
-                <Text style={styles.buttonText}>Підписатись</Text>
-              </TouchableOpacity>
-            }
-          />
-        ))}
+        {users && users.length > 0 ? (
+          users.map((user) => (
+            <UserWithButton
+              key={user.id}
+              userId={user.id}
+              button={
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => {
+                    alert(`${user.fullName} більше не ваш підписник`);
+                  }}
+                >
+                  <Text style={styles.buttonText}>Видалити</Text>
+                </TouchableOpacity>
+              }
+            />
+          ))
+        ) : (
+          <View style={{ padding: 16, alignItems: "center" }}>
+            <Text style={{ color: "#7b7b7b" }}>Підписників немає</Text>
+          </View>
+        )}
       </View>
     </View>
   );

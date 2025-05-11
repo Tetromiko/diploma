@@ -1,25 +1,28 @@
-import React, { useRef } from "react";
+import getUserAvatar from "@/constants/user";
+import React, { useEffect, useRef } from "react";
 import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
 
 interface ChatItemProps {
-  avatar: string;
+  avatarUrl: string;
   title: string;
   lastMessage: string;
   onPress: () => void;
-  onAvatarPress: () => void;
   onLongPress: (event: any) => void;
   unreadCount?: number;
 }
 
 export const ChatItem: React.FC<ChatItemProps> = ({
-  avatar,
+  avatarUrl,
   title,
   lastMessage,
   onPress,
-  onAvatarPress,
   onLongPress,
   unreadCount = 0,
 }) => {
+  const [avatar, setAvatar] = React.useState<any>(null);
+  useEffect(() => {
+    setAvatar(getUserAvatar(avatarUrl));
+  }, []);
   return (
     <TouchableOpacity
       style={styles.container}
@@ -29,9 +32,7 @@ export const ChatItem: React.FC<ChatItemProps> = ({
     >
       <View style={styles.background}></View>
       <View style={styles.chatItem}>
-        <TouchableOpacity onPress={onAvatarPress}>
-          <Image source={{ uri: avatar }} style={styles.avatar} />
-        </TouchableOpacity>
+        <Image source={avatar} style={styles.avatar} />
         <View style={styles.dataContainer}>
           <View style={styles.titleContainer}>
             <Text style={styles.title} numberOfLines={1}>

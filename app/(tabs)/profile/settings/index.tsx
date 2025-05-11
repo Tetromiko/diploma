@@ -2,6 +2,7 @@ import React from "react";
 import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
 import { useRouter, router } from "expo-router";
 import { Ionicons, MaterialIcons, Octicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const setting = [
   {
@@ -69,6 +70,7 @@ const setting = [
         icon: "logout",
         label: "Вийти",
         action: () => {
+          localStorage.removeItem("token");
           router.replace("/authorization/login");
         },
       },

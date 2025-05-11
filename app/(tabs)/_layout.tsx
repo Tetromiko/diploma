@@ -1,4 +1,4 @@
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
 import React from "react";
 import { Octicons } from "@expo/vector-icons";
 import { IconWithBadge } from "@/components/IconWithBadge";
@@ -6,9 +6,17 @@ import { useSegments } from "expo-router";
 
 export default function TabLayout() {
   const segments = useSegments();
+  const router = useRouter();
   const page = segments[segments.length - 1];
-  const pagesToShowTabBar = ["(tabs)", "explore", "chats", "profile"];
+  const pagesToShowTabBar = ["home", "explore", "chats", "profile"];
   const hideTabBar = !pagesToShowTabBar.includes(page);
+
+  const handleTabPress = (route: string) => ({
+    tabPress: (e: any) => {
+      e.preventDefault();
+      router.replace(`/${route}`);
+    },
+  });
 
   return (
     <Tabs
@@ -36,7 +44,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           tabBarIcon: ({ focused }) => (
             <Octicons
@@ -46,6 +54,7 @@ export default function TabLayout() {
             />
           ),
         }}
+        listeners={handleTabPress("home")}
       />
       <Tabs.Screen
         name="explore"
@@ -58,6 +67,7 @@ export default function TabLayout() {
             />
           ),
         }}
+        listeners={handleTabPress("explore")}
       />
       <Tabs.Screen
         name="chats"
@@ -71,6 +81,7 @@ export default function TabLayout() {
             />
           ),
         }}
+        listeners={handleTabPress("chats")}
       />
       <Tabs.Screen
         name="profile"
@@ -83,6 +94,7 @@ export default function TabLayout() {
             />
           ),
         }}
+        listeners={handleTabPress("profile")}
       />
     </Tabs>
   );

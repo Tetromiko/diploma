@@ -1,28 +1,71 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
   TouchableOpacity,
   Image,
   Text,
-  FlatList,
+  TextInput,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Feather, Octicons } from "@expo/vector-icons";
-import { ScrollView, TextInput } from "react-native-gesture-handler";
-import ChatMessage from "@/components/ChatMessage";
-import { PrivateChats, UsersPublic, Messages } from "@/constants/data";
 import Chat from "@/components/Chat";
+import { getRemoteData } from "@/utils/api";
+import {
+  ChatData,
+  GroupChatData,
+  PrivateChatData,
+  MessageData,
+} from "@/constants/types";
+import getUserAvatar from "@/constants/user";
+import { postRemoteData } from "@/utils/api";
+
+interface ChatProps {
+  info: ChatData;
+  additional: PrivateChatData | GroupChatData;
+  messages: MessageData[];
+}
 
 export default function ChatView() {
+  const [chat, setChat] = useState<ChatProps | null>(null);
   const { chatId } = useLocalSearchParams();
   const router = useRouter();
-  const [inputHeight, setInputHeight] = useState(48);
+  const [inputHeight, setInputHeight] = useState(32);
+  const [avatar, setAvatar] = useState<any>();
+  const [title, setTitle] = useState<string>("");
+  const [message, setMessage] = useState<string>("");
 
-  const chat = PrivateChats.find((c) => c.id === chatId);
-  const companion = UsersPublic.find((u) => u.id === chat?.companionId);
+  useEffect(() => {
+    getRemoteData(`/chats/${chatId}`).then((data) => {
+      setChat(data);
+    });
+  }, []);
 
-  const chatMessages = Messages.filter((m) => m.chatId === chatId);
+  useEffect(() => {
+    if (chat) {
+      if (chat.info.type === "group") {
+        setAvatar(chat?.additional.avatarUrl);
+      } else if (chat.info.type === "private") {
+        setAvatar(getUserAvatar(chat?.additional.user.avatarUrl));
+      }
+      setTitle(chat?.additional.title || chat?.additional.user.fullName || "");
+    }
+  }, [chat]);
+
+  const handleSend = async () => {
+    if (message.trim() === "") return; // Не відправляти порожнє повідомлення
+
+    try {
+      await postRemoteData(`/messages/${chatId}`, { text: message }); // Відправка тексту на сервер
+      setMessage("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
+
+    getRemoteData(`/chats/${chatId}`).then((data) => {
+      setChat(data);
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -41,15 +84,19 @@ export default function ChatView() {
         </TouchableOpacity>
         <View style={styles.chatProps}>
           <View style={styles.chatInfo}>
-            <TouchableOpacity>
-              <Image
-                style={styles.avatar}
-                source={{ uri: companion?.avatar || "" }}
-              />
+            <TouchableOpacity
+              onPress={() => {
+                //open group info or user page
+                if (chat?.info.type === "group") {
+                  router.push(`/chats/${chatId}/info`);
+                } else if (chat?.info.type === "private") {
+                  router.push(`/${chat?.additional.user.id}`);
+                }
+              }}
+            >
+              <Image style={styles.avatar} source={avatar} />
             </TouchableOpacity>
-            <Text style={styles.title}>
-              {companion?.nickname || "Користувач"}
-            </Text>
+            <Text style={styles.title}>{title}</Text>
           </View>
           <TouchableOpacity style={styles.actionIcon}>
             <Octicons name="gear" size={32} color="#4d4d4d" />
@@ -57,36 +104,39 @@ export default function ChatView() {
         </View>
       </View>
       <View style={styles.body}>
-        <Chat messages={chatMessages} />
+        <Chat messages={chat?.messages ?? []} />
       </View>
-      <View style={[styles.footer, { height: inputHeight + 16 }]}>
+      <View style={styles.footer}>
         <TouchableOpacity style={styles.actionIcon}>
           <Feather name="paperclip" size={32} color="#999999" />
         </TouchableOpacity>
-        <View style={[styles.input, { height: inputHeight }]}>
+        <View style={styles.input}>
           <TextInput
             style={[
               styles.inputField,
               {
                 outlineColor: "none",
                 outline: "none",
-                minHeight: 48,
+                minHeight: 32,
                 maxHeight: 120,
+                height: inputHeight,
               },
             ]}
             placeholder="Повідомлення"
             placeholderTextColor={"#999999"}
-            multiline
+            multiline={true}
             onContentSizeChange={(e) => {
               const newHeight = Math.min(
-                Math.max(48, e.nativeEvent.contentSize.height),
+                Math.max(32, e.nativeEvent.contentSize.height),
                 120
               );
               setInputHeight(newHeight);
             }}
+            value={message}
+            onChangeText={(text) => setMessage(text)}
           />
         </View>
-        <TouchableOpacity style={styles.actionIcon}>
+        <TouchableOpacity style={styles.actionIcon} onPress={handleSend}>
           <View style={styles.sendIcon}>
             <Feather name="arrow-up" size={28} color="#ffffff" />
           </View>
@@ -156,6 +206,7 @@ const styles = StyleSheet.create({
     borderColor: "#cecece",
     justifyContent: "center",
     paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   inputField: {
     fontWeight: "500",

@@ -5,12 +5,14 @@ import { IconWithBadge } from "@/components/IconWithBadge";
 import { PostStack } from "@/components/PostStack";
 import { ContextMenuContext } from "@/contexts/ContextMenuContext";
 import { Posts, UsersPublic } from "@/constants/data";
-import { CURRENT_USER_ID } from "@/constants/user";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
+import { getRemoteData } from "@/utils/api";
+import { PostData } from "@/constants/types";
 
 const FEED_OPTIONS = [
   { key: "Home", label: "Delagram" },
-  { key: "Followed", label: "Followed" },
+  { key: "Following", label: "Following" },
   {
     key: "Friends",
     label: "Friends",
@@ -22,14 +24,21 @@ export default function HomeScreen() {
   const [selectedFeed, setSelectedFeed] = useState(FEED_OPTIONS[0]);
   const { showMenu } = useContext(ContextMenuContext);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [posts, setPosts] = useState<PostData[]>([]);
 
-  const notMyPosts = Posts.filter((p) => p.ownerId !== CURRENT_USER_ID);
-  const shuffled = [...notMyPosts].sort(() => Math.random() - 0.5).slice(0, 4);
-  const posts = shuffled.map((item) => ({
-    ...item,
-    avatar: UsersPublic.find((u) => u.id === item.ownerId)?.avatar || "",
-    nickname: UsersPublic.find((u) => u.id === item.ownerId)?.nickname || "",
-  }));
+  function changeFeed(key: string) {
+    getRemoteData(`/posts/feed?category=${key.toLowerCase()}&limit=${5}`).then(
+      (data) => {
+        setPosts(data);
+      }
+    );
+  }
+
+  useFocusEffect(
+    React.useCallback(() => {
+      changeFeed(selectedFeed.key);
+    }, [selectedFeed])
+  );
 
   return (
     <View style={styles.container}>
@@ -44,7 +53,10 @@ export default function HomeScreen() {
               y: 50,
               menuOptions: FEED_OPTIONS.map((option) => ({
                 label: option.key,
-                onPress: () => setSelectedFeed(option),
+                onPress: () => {
+                  setSelectedFeed(option);
+                  changeFeed(option.key);
+                },
               })),
               onClosed: () => setMenuOpen(false),
             });
@@ -61,7 +73,7 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={styles.actionIcon}
           onPress={() => {
-            router.push("/notifications");
+            router.push("/home/notifications");
           }}
         >
           <IconWithBadge name="bell" size={32} color="#313131" active />

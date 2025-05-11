@@ -2,10 +2,10 @@ import UserWithButton from "@/components/UserWithButton";
 import { Notifications } from "@/constants/data";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState, useContext } from "react";
+import React from "react";
 import { Text, View, TouchableOpacity, StyleSheet, Image } from "react-native";
 
-export default function NotificationsScreen() {
+export default function GroupInfoScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -39,10 +39,7 @@ export default function NotificationsScreen() {
                     <Text style={styles.buttonText}>Підписатись</Text>
                   </TouchableOpacity>
                 ) : (
-                  <Image
-                    source={require("../../../assets/images/firework.png")}
-                    style={styles.fireworkImage}
-                  />
+                  <Image style={styles.fireworkImage} />
                 )
               }
               description={

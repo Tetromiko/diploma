@@ -12,11 +12,8 @@ import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ContextMenuProvider } from "@/contexts/ContextMenuContext";
 
-// addd status bar height to the top of the screen
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -37,18 +34,17 @@ export default function RootLayout() {
 
   return (
     <ContextMenuProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider>
-          <SafeAreaView style={{ flex: 1 }}>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="+not-found" />
-              <Stack.Screen name="authorization" />
-            </Stack>
-            <StatusBar style="auto" />
-          </SafeAreaView>
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
+      <SafeAreaProvider>
+        <SafeAreaView style={{ flex: 1 }}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="+not-found" />
+            <Stack.Screen name="authorization" />
+          </Stack>
+          <StatusBar style="auto" />
+        </SafeAreaView>
+      </SafeAreaProvider>
     </ContextMenuProvider>
   );
 }

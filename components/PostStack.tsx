@@ -61,27 +61,7 @@ export const PostStack: React.FC<PostStackProps> = ({ posts, onRefresh }) => {
               key={post.id}
               style={[styles.card, { top: i * 8, zIndex: 3 - i }]}
             >
-              <Post
-                post={post}
-                onMenuPress={(event: any) => {
-                  const { pageX, pageY } = event.nativeEvent;
-                  showMenu({
-                    x: pageX,
-                    y: pageY,
-                    menuOptions: [
-                      {
-                        label: "Поскаржитись",
-                        onPress: () => alert("Поскаржитись"),
-                        style: { color: "#e57373" },
-                      },
-                      {
-                        label: "Поділитись",
-                        onPress: () => alert("Поділитись"),
-                      },
-                    ],
-                  });
-                }}
-              />
+              <Post post={post} />
             </Animated.View>
           ))
         )}

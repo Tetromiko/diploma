@@ -4,8 +4,7 @@ export default function ChatsLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
-      <Stack.Screen name="[chatId]" />
-      <Stack.Screen name="create" />
+      <Stack.Screen name="groupInfo" />
     </Stack>
   );
 }

@@ -1,21 +1,25 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { MessageData } from "@/constants/types";
 
-export interface MessageData {
-  id: string;
-  text: string;
-  senderId: string;
-  time: string;
-  read: boolean;
-}
-
-interface MessageProps {
+export default function Message(props: {
   message: MessageData;
   isMine: boolean;
-}
-
-export default function Message(props: MessageProps) {
+}) {
   const { message, isMine } = props;
+
+  // Якщо message має поле createdAt (рядок), перетворіть його у Date
+  let time = message.time;
+  if (!time && (message as any).createdAt) {
+    try {
+      time = new Date((message as any).createdAt).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      time = "";
+    }
+  }
 
   return (
     <View style={{ flexDirection: isMine ? "row-reverse" : "row" }}>
@@ -23,9 +27,7 @@ export default function Message(props: MessageProps) {
         <Text style={[styles.text, isMine && styles.myText]}>
           {message.text}
         </Text>
-        <Text style={[styles.time, isMine && styles.myTime]}>
-          {message.time}
-        </Text>
+        <Text style={[styles.time, isMine && styles.myTime]}>{time}</Text>
       </View>
     </View>
   );

@@ -1,8 +1,8 @@
 import React from "react";
-import { ScrollView } from "react-native-gesture-handler";
+import { ScrollView } from "react-native";
 import ChatMessage from "./ChatMessage";
-import { MessageData } from "./Message";
 import { StyleSheet, View } from "react-native";
+import { MessageData } from "@/constants/types";
 
 interface ChatProps {
   messages: MessageData[];
