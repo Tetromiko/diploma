@@ -34,7 +34,7 @@ export interface UserPublic {
   id: number;
   nickname: string;
   avatarUrl?: string;
-  description: string;
+  description?: string;
   fullName: string;
 }
 

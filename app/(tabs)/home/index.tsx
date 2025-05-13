@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { IconWithBadge } from "@/components/IconWithBadge";
 import { PostStack } from "@/components/PostStack";
 import { ContextMenuContext } from "@/contexts/ContextMenuContext";
-import { Posts, UsersPublic } from "@/constants/data";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import { getRemoteData } from "@/utils/api";

@@ -12,11 +12,123 @@ import { PostData } from "@/constants/types";
 import getUserAvatar from "@/constants/user";
 import { router } from "expo-router";
 import { ContextMenuContext } from "@/contexts/ContextMenuContext";
+import { getRemoteData } from "@/utils/api";
 
 interface PostProps {
   post: PostData;
   onMenuPress?: (event: any) => void;
   onClose?: () => void;
+}
+
+function AttachmentsGrid({ attachments }: { attachments: string[] }) {
+  if (!attachments || attachments.length === 0) return null;
+  const count = attachments.length;
+  if (count === 1) {
+    return (
+      <View style={styles.attachmentsGridRow}>
+        <Image
+          source={{ uri: attachments[0] }}
+          style={styles.attachmentSingle}
+          resizeMode="cover"
+        />
+      </View>
+    );
+  }
+  if (count === 2) {
+    return (
+      <View style={styles.attachmentsGridRow}>
+        <Image
+          source={{ uri: attachments[0] }}
+          style={styles.attachmentHalf}
+          resizeMode="cover"
+        />
+        <Image
+          source={{ uri: attachments[1] }}
+          style={styles.attachmentHalf}
+          resizeMode="cover"
+        />
+      </View>
+    );
+  }
+  if (count === 3) {
+    return (
+      <View style={styles.attachmentsGridRow}>
+        <Image
+          source={{ uri: attachments[0] }}
+          style={styles.attachmentHalf}
+          resizeMode="cover"
+        />
+        <View
+          style={{
+            width: 0,
+            flexGrow: 1,
+            flexShrink: 1,
+            flexDirection: "column",
+            gap: 4,
+          }}
+        >
+          <Image
+            source={{ uri: attachments[1] }}
+            style={styles.attachmentQuarter}
+            resizeMode="cover"
+          />
+          <Image
+            source={{ uri: attachments[2] }}
+            style={styles.attachmentQuarter}
+            resizeMode="cover"
+          />
+        </View>
+      </View>
+    );
+  }
+  if (count >= 4) {
+    const showCount = Math.min(4, count);
+    return (
+      <View style={styles.attachmentsGrid}>
+        <View style={styles.attachmentsGridRow}>
+          <Image
+            source={{ uri: attachments[0] }}
+            style={styles.attachmentQuarter}
+            resizeMode="cover"
+          />
+          <Image
+            source={{ uri: attachments[1] }}
+            style={styles.attachmentQuarter}
+            resizeMode="cover"
+          />
+        </View>
+        <View style={styles.attachmentsGridRow}>
+          <Image
+            source={{ uri: attachments[2] }}
+            style={styles.attachmentQuarter}
+            resizeMode="cover"
+          />
+          {showCount > 4 ? (
+            <View style={styles.attachmentQuarter}>
+              <Image
+                source={{ uri: attachments[3] }}
+                style={[
+                  styles.attachmentQuarter,
+                  { position: "absolute", top: 0, left: 0 },
+                ]}
+                resizeMode="cover"
+              />
+              <View style={styles.overlay}>
+                <Text style={styles.overlayText}>+{count - 3}</Text>
+              </View>
+            </View>
+          ) : (
+            <Image
+              source={{ uri: attachments[3] }}
+              style={styles.attachmentQuarter}
+              resizeMode="cover"
+            />
+          )}
+        </View>
+      </View>
+    );
+  }
+  return null;
 }
 
 export const Post: React.FC<PostProps> = ({ post, onMenuPress }) => {
@@ -44,6 +156,14 @@ export const Post: React.FC<PostProps> = ({ post, onMenuPress }) => {
   function handleSaved() {
     setSaved(!saved);
   }
+
+  useEffect(() => {
+    getRemoteData(`/posts/${post.id}/interactions`).then((data) => {
+      setLiked(data.includes("like"));
+      setDisliked(data.includes("dislike"));
+      setSaved(data.includes("save"));
+    });
+  });
 
   function handleMenuPress(event: any) {
     const { pageX, pageY } = event.nativeEvent || {};
@@ -85,31 +205,34 @@ export const Post: React.FC<PostProps> = ({ post, onMenuPress }) => {
           <Octicons name="kebab-horizontal" size={24} color="#999" />
         </TouchableOpacity>
       </View>
-      <TouchableOpacity
-        style={styles.body}
-        onPress={() => console.log("Post pressed")}
-        onLongPress={() => {
-          console.log("Long press detected");
-        }}
-        delayLongPress={300}
-      >
-        <ScrollView>
-          <Text style={styles.title}>{post?.title || "Title"}</Text>
-          <Text style={styles.text}>{post?.text || "Text"}</Text>
-          {post.attachments && post.attachments.length > 0 && (
-            <View style={styles.attachments}>
-              {post.attachments.map((uri, idx) => (
-                <Image
-                  key={idx}
-                  source={{ uri }}
-                  style={styles.attachmentImage}
-                  resizeMode="cover"
-                />
-              ))}
+      <View style={styles.body}>
+        <ScrollView
+          contentContainerStyle={styles.postBody}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => console.log("Post pressed")}
+            onLongPress={() => {
+              console.log("Long press detected");
+            }}
+            delayLongPress={300}
+            style={{ flex: 1 }}
+          >
+            <View>
+              <View style={styles.titleContainer}>
+                <View style={styles.verticalLine} />
+                <Text style={styles.title}>{post?.title || "Title"}</Text>
+              </View>
+              <Text style={styles.text}>{post?.text || "Text"}</Text>
+              {post.attachments && post.attachments.length > 0 && (
+                <AttachmentsGrid attachments={post.attachments} />
+              )}
             </View>
-          )}
+          </TouchableOpacity>
         </ScrollView>
-      </TouchableOpacity>
+      </View>
       <View style={styles.footer}>
         <View style={styles.actions}>
           <TouchableOpacity style={styles.options} onPress={handleLike}>
@@ -177,14 +300,14 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "600",
     marginBottom: 4,
-    color: "#222",
+    color: "#4d4d4d",
   },
   text: {
-    fontSize: 15,
-    color: "#333",
+    fontSize: 14,
+    color: "#4d4d4d",
     marginBottom: 8,
   },
   attachments: {
@@ -194,11 +317,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   attachmentImage: {
-    width: 80,
-    height: 80,
+    width: "100%",
+    aspectRatio: 1,
     borderRadius: 8,
-    marginRight: 8,
-    marginBottom: 8,
     backgroundColor: "#eee",
   },
   footer: {
@@ -233,5 +354,61 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: "row",
+  },
+  titleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  verticalLine: {
+    width: 1.5,
+    height: 40,
+    backgroundColor: "#999999",
+  },
+  postBody: {
+    gap: 8,
+    flexGrow: 1,
+  },
+  attachmentsGrid: {
+    flexDirection: "column",
+    gap: 4,
+    marginTop: 4,
+  },
+  attachmentsGridRow: {
+    flexDirection: "row",
+    gap: 4,
+  },
+  attachmentSingle: {
+    width: "100%",
+    aspectRatio: 1,
+    borderRadius: 8,
+    backgroundColor: "#eee",
+  },
+  attachmentHalf: {
+    flex: 1,
+    width: "0%",
+    aspectRatio: 1,
+    borderRadius: 8,
+    backgroundColor: "#eee",
+  },
+  attachmentQuarter: {
+    flex: 1,
+    width: "100%",
+    aspectRatio: 1,
+    borderRadius: 8,
+    backgroundColor: "#eee",
+    overflow: "hidden",
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
+  },
+  overlayText: {
+    color: "#fff",
+    fontSize: 24,
+    fontWeight: "bold",
   },
 });

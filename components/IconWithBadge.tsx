@@ -15,7 +15,7 @@ export const IconWithBadge: React.FC<IconWithBadgeProps> = ({
   size = 24,
   color = "black",
   active = false,
-  badgeColor = "red",
+  badgeColor = "#7eaaed",
 }) => {
   return (
     <View style={styles.iconContainer}>

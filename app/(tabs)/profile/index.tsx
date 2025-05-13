@@ -13,7 +13,7 @@ import { getRemoteData, postRemoteData } from "@/utils/api";
 import { useFocusEffect } from "@react-navigation/native";
 import getUserAvatar from "@/constants/user";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
-import { UserPublic } from "../home";
+import { UserPublic } from "@/constants/types";
 import { PostData } from "@/constants/types";
 import { router } from "expo-router";
 
@@ -113,20 +113,20 @@ export default function ProfileScreen() {
             <TouchableOpacity
               style={styles.statItem}
               onPress={() => {
-                router.push("/profile/following");
-              }}
-            >
-              <Text style={styles.statNumber}>{followingCount}</Text>
-              <Text style={styles.statLabel}>Підписки</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.statItem}
-              onPress={() => {
                 router.push("/profile/followers");
               }}
             >
               <Text style={styles.statNumber}>{followersCount}</Text>
               <Text style={styles.statLabel}>Підписники</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.statItem}
+              onPress={() => {
+                router.push("/profile/following");
+              }}
+            >
+              <Text style={styles.statNumber}>{followingCount}</Text>
+              <Text style={styles.statLabel}>Підписки</Text>
             </TouchableOpacity>
           </View>
           {userData?.description && (

@@ -3,6 +3,7 @@ import getUserAvatar from "@/constants/user";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Image, Text, View, StyleSheet, TouchableOpacity } from "react-native";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 export default function UserWithButton(props: {
   userId: number;
@@ -14,6 +15,21 @@ export default function UserWithButton(props: {
   const [user, setUser] = useState<UserPublic | null>(null);
 
   const avatar = getUserAvatar(user?.avatarUrl || "");
+
+  const [userDescription, setUserDescription] = useState("");
+
+  function getDescription(text: string | undefined) {
+    if (text === undefined) {
+      return "";
+    }
+    if (text.trim() === "") {
+      return "";
+    }
+    if (text.length > 40) {
+      return text.slice(0, 40).concat("...");
+    }
+    return text;
+  }
 
   useEffect(() => {
     fetch(`https://localhost:7232/api/users/${props.userId}`)
@@ -40,9 +56,9 @@ export default function UserWithButton(props: {
           </TouchableOpacity>
           <View style={styles.textContainer}>
             <Text style={styles.userName}>{user?.fullName || "user"}</Text>
-            {description && (
-              <Text style={styles.description}>{description}</Text>
-            )}
+            <Text style={styles.description}>
+              {description ? description : getDescription(user?.description)}
+            </Text>
           </View>
         </View>
         {button && <View style={styles.buttonContainer}>{button}</View>}

@@ -22,7 +22,7 @@ const tabs = [
     key: "all",
   },
   {
-    label: "Приватні чати",
+    label: "Друзі",
     key: "private",
   },
   { label: "Групові чати", key: "group" },
@@ -53,13 +53,13 @@ export default function ChatsScreen() {
     );
   }, [activeTab, chats]);
 
-  const handleDeleteChat = (chatId: string) => {
+  const handleDeleteChat = (chatId: number) => {
     alert(`Видалити чат ${chatId}`);
   };
-  const handleMuteChat = (chatId: string) => {
+  const handleMuteChat = (chatId: number) => {
     alert(`Вимкнути сповіщення для чату ${chatId}`);
   };
-  const handlePinChat = (chatId: string) => {
+  const handlePinChat = (chatId: number) => {
     alert(`Прикріпити чат ${chatId}`);
   };
 
@@ -104,9 +104,9 @@ export default function ChatsScreen() {
           return (
             <ChatItem
               unreadCount={0}
+              chatId={item.id}
               avatarUrl={item?.avatarUrl || ""}
               title={item?.title || "Користувач"}
-              lastMessage={""}
               onPress={() => router.push(`/chats/${item.id}`)}
               onLongPress={(event: any) => {
                 const { pageX, pageY } = event.nativeEvent;

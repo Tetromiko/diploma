@@ -1,8 +1,7 @@
 import { Dropdown, DropdownOption } from "@/components/Dropdown";
 import { Octicons } from "@expo/vector-icons";
 import React, { useState, useEffect } from "react";
-import { Text } from "react-native";
-import { StyleSheet, TextInput, View, FlatList } from "react-native";
+import { StyleSheet, TextInput, View, ScrollView, Text } from "react-native";
 import UserWithButton from "@/components/UserWithButton";
 import { getRemoteData } from "@/utils/api";
 import { UserPublic } from "@/constants/types";
@@ -102,14 +101,14 @@ export default function ExploreScreen() {
   if (inputValue.trim().length >= 3) {
     if (users && posts) {
       mixed = shuffleArray([
-        ...users.map((u) => ({ type: "user", data: u })),
-        ...posts.map((p) => ({ type: "post", data: p })),
+        ...users.map((u) => ({ type: "user", data: u } as const)),
+        ...posts.map((p) => ({ type: "post", data: p } as const)),
       ]);
     }
   } else {
     mixed = shuffleArray([
-      ...randomUsers.map((u) => ({ type: "user", data: u })),
-      ...randomPosts.map((p) => ({ type: "post", data: p })),
+      ...randomUsers.map((u) => ({ type: "user", data: u } as const)),
+      ...randomPosts.map((p) => ({ type: "post", data: p } as const)),
     ]);
   }
 
@@ -123,34 +122,33 @@ export default function ExploreScreen() {
           style={{ outlineColor: "none", outline: "none" }}
         />
       </View>
-      <View style={styles.filters}>{dropdowns}</View>
-      <View style={styles.resultsContainer}>
-        <FlatList
-          data={mixed}
-          keyExtractor={(item, idx) =>
-            item.type === "user"
-              ? `user-${item.data.id}`
-              : `post-${item.data.id}`
-          }
-          renderItem={({ item }) =>
-            item.type === "user" ? (
-              <UserWithButton
-                userId={item.data.id}
-                description={item.data.name}
-              />
-            ) : (
-              <Post post={item.data} />
-            )
-          }
-          contentContainerStyle={{ gap: 8 }}
-          ListEmptyComponent={
-            <Text
-              style={{ color: "#7b7b7b", textAlign: "center", marginTop: 32 }}
-            >
-              Нічого не знайдено
-            </Text>
-          }
-        />
+      <View style={styles.body}>
+        <View style={styles.filters}>{dropdowns}</View>
+        <ScrollView
+          contentContainerStyle={styles.resultsContainer}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          style={{ flex: 1, height: "100%" }}
+        >
+          {mixed.length > 0 ? (
+            mixed.map((item, index) => {
+              if (item.type === "user") {
+                return (
+                  <UserWithButton
+                    key={index}
+                    userId={item.data.id}
+                    description={item.data.description}
+                  />
+                );
+              }
+              return <Post key={`post-${item.data.id}`} post={item.data} />;
+            })
+          ) : (
+            <View style={{ padding: 16 }}>
+              <Text style={{ color: "#7b7b7b" }}>Нічого не знайдено</Text>
+            </View>
+          )}
+        </ScrollView>
       </View>
     </View>
   );
@@ -158,6 +156,7 @@ export default function ExploreScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     marginHorizontal: 16,
     gap: 16,
     paddingVertical: 8,
@@ -193,5 +192,12 @@ const styles = StyleSheet.create({
     borderColor: "#cecece",
     backgroundColor: "#ffffff",
   },
-  resultsContainer: { gap: 8 },
+  resultsContainer: {
+    gap: 8,
+    flexGrow: 1,
+  },
+  body: {
+    flex: 1,
+    gap: 16,
+  },
 });

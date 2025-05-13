@@ -1,28 +1,42 @@
+import { MessageData } from "@/constants/types";
 import getUserAvatar from "@/constants/user";
-import React, { useEffect, useRef } from "react";
+import { getRemoteData } from "@/utils/api";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
 
 interface ChatItemProps {
+  chatId: number;
   avatarUrl: string;
   title: string;
-  lastMessage: string;
   onPress: () => void;
   onLongPress: (event: any) => void;
   unreadCount?: number;
 }
 
 export const ChatItem: React.FC<ChatItemProps> = ({
+  chatId,
   avatarUrl,
   title,
-  lastMessage,
   onPress,
   onLongPress,
   unreadCount = 0,
 }) => {
-  const [avatar, setAvatar] = React.useState<any>(null);
+  const [message, setMessage] = useState<MessageData | null>(null);
   useEffect(() => {
-    setAvatar(getUserAvatar(avatarUrl));
+    getRemoteData(`/chats/${chatId}`).then((data) => {
+      console.log(data.messages[data.messages.length - 1]);
+      setMessage(data.messages[data.messages.length - 1]);
+    });
   }, []);
+
+  function getTime(date: Date | string) {
+    if (typeof date === "string") {
+      date = new Date(date);
+    }
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    return `${hours}:${minutes < 10 ? "0" + minutes : minutes}`;
+  }
   return (
     <TouchableOpacity
       style={styles.container}
@@ -32,7 +46,7 @@ export const ChatItem: React.FC<ChatItemProps> = ({
     >
       <View style={styles.background}></View>
       <View style={styles.chatItem}>
-        <Image source={avatar} style={styles.avatar} />
+        <Image source={getUserAvatar(avatarUrl)} style={styles.avatar} />
         <View style={styles.dataContainer}>
           <View style={styles.titleContainer}>
             <Text style={styles.title} numberOfLines={1}>
@@ -46,9 +60,11 @@ export const ChatItem: React.FC<ChatItemProps> = ({
           </View>
           <View style={styles.messageContainer}>
             <Text style={styles.lastMessage} numberOfLines={1}>
-              {lastMessage}
+              {message?.text}
             </Text>
-            <Text style={styles.date}>12:00</Text>
+            <Text style={styles.date}>
+              {message && getTime(message?.createdAt || new Date())}
+            </Text>
           </View>
         </View>
       </View>
