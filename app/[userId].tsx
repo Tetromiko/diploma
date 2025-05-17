@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,29 +6,47 @@ import {
   Image,
   TouchableOpacity,
   FlatList,
+  ScrollView,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { Octicons, Ionicons } from "@expo/vector-icons";
 import { useRouter, Stack } from "expo-router";
 import { Post } from "@/components/Post";
-import { Posts, UsersPublic } from "@/constants/data";
-import { getRemoteData } from "@/utils/api";
+import { getRemoteData, patchRemoteData, postRemoteData } from "@/utils/api";
 import { PostData, UserData, UserPublicFull } from "@/constants/types";
 import getUserAvatar from "@/constants/user";
 
 export default function ProfileScreen() {
   const { userId } = useLocalSearchParams();
   const router = useRouter();
-  const [user, setUser] = React.useState<UserPublicFull | null>(null);
-  const [posts, setPosts] = React.useState<PostData[]>([]);
-  const [avatar, setAvatar] = React.useState<any>(null);
+  const [user, setUser] = useState<UserPublicFull | null>(null);
+  const [posts, setPosts] = useState<PostData[]>([]);
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   useEffect(() => {
     getRemoteData(`/users/${userId}`).then((data) => {
       setUser(data);
       console.log("User data:", data);
     });
-  });
+    getRemoteData(`/me/relations?type=following`).then((followings) => {
+      const followingIds = followings.map((user: UserData) => user.id);
+      getRemoteData(`/me/relations?type=friends`).then((friends) => {
+        const friendIds = friends.map((user: UserData) => user.id);
+        setIsSubscribed(
+          followingIds.includes(Number(userId)) ||
+            friendIds.includes(Number(userId))
+        );
+      });
+    });
+    getRemoteData<PostData[]>(`/users/${userId}/posts`).then((data) => {
+      setPosts(data);
+    });
+  }, []);
+
+  function toggleSubscriptionState(state: boolean) {
+    setIsSubscribed(!state);
+    patchRemoteData(`/users/${userId}/follow`, !state);
+  }
 
   return (
     <>
@@ -63,45 +81,39 @@ export default function ProfileScreen() {
           />
           <View style={styles.infoBlock}>
             <Text style={styles.userName}>{user?.fullName || "User"}</Text>
-            {user?.description && (
+            {user?.description ? (
               <View style={styles.biographyContainer}>
                 <Text style={styles.biographyText}>{user?.description}</Text>
               </View>
-            )}
+            ) : null}
           </View>
         </View>
-        <View style={styles.divider} />
-        <FlatList
-          style={styles.postsContainer}
-          data={posts}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.postWrapper}>
-              <Post
-                post={item}
-                onMenuPress={(event: any) => {
-                  const { pageX, pageY } = event.nativeEvent;
-                  console.log("Menu pressed at", pageX, pageY);
-                }}
-              />
-            </View>
-          )}
-          contentContainerStyle={{ paddingBottom: 16 }}
+        <View style={styles.buttonHolder}>
+          <TouchableOpacity
+            onPress={() => toggleSubscriptionState(isSubscribed)}
+            style={[
+              styles.buttonContainer,
+              isSubscribed && styles.buttonInactiveContainer,
+            ]}
+          >
+            <Text
+              style={[
+                styles.buttonText,
+                isSubscribed && styles.buttonInactiveText,
+              ]}
+            >
+              {isSubscribed ? "Відписатися" : "Підписатися"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView
+          style={styles.scrollView}
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
-          ListEmptyComponent={
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-                height: 200,
-              }}
-            >
-              <Text style={{ color: "#7b7b7b" }}>Постів немає</Text>
-            </View>
-          }
-        />
+          contentContainerStyle={styles.postsContainer}
+        >
+          {posts?.length > 0 && posts.map((item) => <Post postId={item.id} />)}
+        </ScrollView>
       </View>
     </>
   );
@@ -111,6 +123,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f6f6f6",
+    gap: 16,
   },
   header: {
     height: 64,
@@ -146,7 +159,6 @@ const styles = StyleSheet.create({
   userInfo: {
     flexDirection: "column",
     alignItems: "center",
-    padding: 16,
     gap: 8,
   },
   profileImage: {
@@ -183,11 +195,43 @@ const styles = StyleSheet.create({
     backgroundColor: "#cecece",
     width: "100%",
   },
+
   postsContainer: {
     flex: 1,
     padding: 16,
+    gap: 16,
   },
-  postWrapper: {
-    marginBottom: 16,
+
+  scrollView: {
+    flex: 1,
+    borderTopWidth: 1,
+    borderTopColor: "#cecece",
+  },
+  buttonHolder: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  buttonContainer: {
+    backgroundColor: "#7eaaed",
+    borderRadius: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignContent: "center",
+    justifyContent: "center",
+    height: 32,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  buttonInactiveContainer: {
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#cecece",
+  },
+  buttonInactiveText: {
+    color: "#7b7b7b",
   },
 });

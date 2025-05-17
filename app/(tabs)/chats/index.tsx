@@ -32,6 +32,7 @@ const tabs = [
 export default function ChatsScreen() {
   const router = useRouter();
   const { showMenu } = useContext(ContextMenuContext);
+  
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const [chats, setChats] = useState<ChatPreview[]>([]);
   const [categoryChats, setCategoryChats] = useState<ChatPreview[]>([]);

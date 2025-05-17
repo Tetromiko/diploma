@@ -23,19 +23,27 @@ export default function HomeScreen() {
   const [selectedFeed, setSelectedFeed] = useState(FEED_OPTIONS[0]);
   const { showMenu } = useContext(ContextMenuContext);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [posts, setPosts] = useState<PostData[]>([]);
+  const [posts, setPosts] = useState<number[]>([]);
+  const [notificationsActive, setNotificationsActive] = useState(false);
 
   function changeFeed(key: string) {
     getRemoteData(`/posts/feed?category=${key.toLowerCase()}&limit=${5}`).then(
       (data) => {
-        setPosts(data);
+        setPosts(data.map((post: PostData) => post.id));
       }
     );
+  }
+
+  function getNotificationsState() {
+    getRemoteData("/me/notifications").then((data) => {
+      setNotificationsActive(data.length > 0);
+    });
   }
 
   useFocusEffect(
     React.useCallback(() => {
       changeFeed(selectedFeed.key);
+      getNotificationsState();
     }, [selectedFeed])
   );
 
@@ -45,7 +53,7 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={styles.logoRow}
           onPress={(event: any) => {
-            const { pageX, pageY } = event.nativeEvent;
+            const { pageX } = event.nativeEvent;
             setMenuOpen(true);
             showMenu({
               x: pageX,
@@ -75,7 +83,12 @@ export default function HomeScreen() {
             router.push("/home/notifications");
           }}
         >
-          <IconWithBadge name="bell" size={32} color="#313131" active />
+          <IconWithBadge
+            name="bell"
+            size={32}
+            color="#313131"
+            active={notificationsActive}
+          />
         </TouchableOpacity>
       </View>
       <View style={styles.content}>

@@ -1,9 +1,9 @@
 import { UserPublic } from "@/constants/types";
 import getUserAvatar from "@/constants/user";
+import { getRemoteData } from "@/utils/api";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Image, Text, View, StyleSheet, TouchableOpacity } from "react-native";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 export default function UserWithButton(props: {
   userId: number;
@@ -15,8 +15,6 @@ export default function UserWithButton(props: {
   const [user, setUser] = useState<UserPublic | null>(null);
 
   const avatar = getUserAvatar(user?.avatarUrl || "");
-
-  const [userDescription, setUserDescription] = useState("");
 
   function getDescription(text: string | undefined) {
     if (text === undefined) {
@@ -32,15 +30,10 @@ export default function UserWithButton(props: {
   }
 
   useEffect(() => {
-    fetch(`https://localhost:7232/api/users/${props.userId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setUser(data);
-      })
-      .catch((err) => {
-        console.warn("API error:", err);
-      });
-  }, [props.userId]);
+    getRemoteData<UserPublic>(`/users/${props.userId}`).then((data) => {
+      setUser(data);
+    });
+  }, []);
 
   return (
     <View style={styles.container}>

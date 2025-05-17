@@ -1,21 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
   View,
   Image,
   TouchableOpacity,
-  Dimensions,
+  ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { AntDesign, Octicons } from "@expo/vector-icons";
 import { Post } from "@/components/Post";
-import { getRemoteData, postRemoteData } from "@/utils/api";
+import { getRemoteData } from "@/utils/api";
 import { useFocusEffect } from "@react-navigation/native";
 import getUserAvatar from "@/constants/user";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 import { UserPublic } from "@/constants/types";
 import { PostData } from "@/constants/types";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 const categories = [
   { key: "created", icon: "three-bars", label: "Створені" },
@@ -33,24 +34,43 @@ export default function ProfileScreen() {
   const [followersCount, setFollowersCount] = useState(0);
   const [index, setIndex] = useState(0);
   const [routes] = useState(categories);
+  const [userLoading, setUserLoading] = useState(true);
+  const params = useLocalSearchParams();
 
-  useFocusEffect(
-    React.useCallback(() => {
-      getRemoteData("/me").then((data) => setUserData(data));
-      getRemoteData("/me/interactions?type=create").then(setCreatedPosts);
-      getRemoteData("/me/interactions?type=like").then(setLikedPosts);
-      getRemoteData("/me/interactions?type=save").then(setSavedPosts);
+  const fetchData = useCallback(() => {
+    setUserLoading(true);
+    Promise.all([
+      getRemoteData("/me").then((data) => setUserData(data)),
+      getRemoteData("/me/interactions?type=create").then(setCreatedPosts),
+      getRemoteData("/me/interactions?type=like").then(setLikedPosts),
+      getRemoteData("/me/interactions?type=save").then(setSavedPosts),
       getRemoteData("/me/relations?type=friends").then((data) => {
         setFriendsCount(data.length);
-      });
+      }),
       getRemoteData("/me/relations?type=following").then((data) => {
         setFollowingCount(data.length);
-      });
+      }),
       getRemoteData("/me/relations?type=followers").then((data) => {
         setFollowersCount(data.length);
-      });
-    }, [])
-  );
+      }),
+    ]).then(() => {
+      setTimeout(() => setUserLoading(false), 500); // затримка перед setUserLoading(false)
+    });
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  React.useEffect(() => {
+    if (index === 0) {
+      getRemoteData("/me/interactions?type=create").then(setCreatedPosts);
+    } else if (index === 1) {
+      getRemoteData("/me/interactions?type=like").then(setLikedPosts);
+    } else if (index === 2) {
+      getRemoteData("/me/interactions?type=save").then(setSavedPosts);
+    }
+  }, [index]);
 
   const renderScene = SceneMap({
     created: () => <TabPostsList posts={createdPosts} />,
@@ -60,7 +80,10 @@ export default function ProfileScreen() {
 
   function TabPostsList({ posts }: { posts: PostData[] }) {
     return (
-      <View style={styles.postsContainer}>
+      <ScrollView
+        style={styles.postsContainer}
+        showsVerticalScrollIndicator={false}
+      >
         {posts.length === 0 ? (
           <View style={styles.empty}>
             <Text style={{ color: "#7b7b7b" }}>Постів немає</Text>
@@ -68,10 +91,25 @@ export default function ProfileScreen() {
         ) : (
           posts.map((item) => (
             <View style={styles.postWrapper} key={item.id}>
-              <Post post={item} />
+              <Post postId={item.id} />
             </View>
           ))
         )}
+      </ScrollView>
+    );
+  }
+
+  if (userLoading || !userData) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#f6f6f6",
+        }}
+      >
+        <ActivityIndicator size="large" color="#cecece" />
       </View>
     );
   }
@@ -79,9 +117,12 @@ export default function ProfileScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.nickname}>{userData?.nickname || "nickname"}</Text>
+        <Text style={styles.nickname}>{userData?.nickname}</Text>
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.actionIcon}>
+          <TouchableOpacity
+            style={styles.actionIcon}
+            onPress={() => router.push("/profile/create")}
+          >
             <AntDesign name="pluscircleo" size={32} color="#333" />
           </TouchableOpacity>
           <TouchableOpacity
@@ -92,78 +133,82 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </View>
-      <View style={styles.userInfo}>
-        <Image
-          source={getUserAvatar(userData?.avatarUrl || "")}
-          resizeMode="cover"
-          style={styles.profileImage}
-        />
-        <View style={styles.infoBlock}>
-          <Text style={styles.userName}>{userData?.fullName || "User"}</Text>
-          <View style={styles.relations}>
-            <TouchableOpacity
-              style={styles.statItem}
-              onPress={() => {
-                router.push("/profile/friends");
-              }}
-            >
-              <Text style={styles.statNumber}>{friendsCount}</Text>
-              <Text style={styles.statLabel}>Друзі</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.statItem}
-              onPress={() => {
-                router.push("/profile/followers");
-              }}
-            >
-              <Text style={styles.statNumber}>{followersCount}</Text>
-              <Text style={styles.statLabel}>Підписники</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.statItem}
-              onPress={() => {
-                router.push("/profile/following");
-              }}
-            >
-              <Text style={styles.statNumber}>{followingCount}</Text>
-              <Text style={styles.statLabel}>Підписки</Text>
-            </TouchableOpacity>
-          </View>
-          {userData?.description && (
-            <View style={styles.biographyContainer}>
-              <Text style={styles.biographyText}>{userData?.description}</Text>
-            </View>
-          )}
-        </View>
-      </View>
-      <TabView
-        commonOptions={{
-          icon: ({ route, focused }) => (
-            <Octicons
-              name={route.icon}
-              size={24}
-              color={focused ? "#000000" : "#808080"}
-            />
-          ),
-        }}
-        navigationState={{ index, routes }}
-        renderScene={renderScene}
-        onIndexChange={setIndex}
-        renderTabBar={(props) => (
-          <TabBar
-            {...props}
-            indicatorStyle={{ height: 0 }}
-            style={{
-              backgroundColor: "transparent",
-              shadowColor: "transparent",
-              borderBottomWidth: 1,
-              borderBottomColor: "#cecece",
-              borderTopWidth: 1,
-              borderTopColor: "#cecece",
-            }}
+      <View style={styles.body}>
+        <View style={styles.userInfo}>
+          <Image
+            source={getUserAvatar(userData?.avatarUrl || "")}
+            resizeMode="cover"
+            style={styles.profileImage}
           />
-        )}
-      />
+          <View style={styles.infoBlock}>
+            <Text style={styles.userName}>{userData?.fullName || "User"}</Text>
+            <View style={styles.relations}>
+              <TouchableOpacity
+                style={styles.statItem}
+                onPress={() => {
+                  router.push("/profile/friends");
+                }}
+              >
+                <Text style={styles.statNumber}>{friendsCount}</Text>
+                <Text style={styles.statLabel}>Друзі</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.statItem}
+                onPress={() => {
+                  router.push("/profile/followers");
+                }}
+              >
+                <Text style={styles.statNumber}>{followersCount}</Text>
+                <Text style={styles.statLabel}>Підписники</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.statItem}
+                onPress={() => {
+                  router.push("/profile/following");
+                }}
+              >
+                <Text style={styles.statNumber}>{followingCount}</Text>
+                <Text style={styles.statLabel}>Підписки</Text>
+              </TouchableOpacity>
+            </View>
+            {userData?.description && (
+              <View style={styles.biographyContainer}>
+                <Text style={styles.biographyText}>
+                  {userData?.description}
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+        <TabView
+          commonOptions={{
+            icon: ({ route, focused }) => (
+              <Octicons
+                name={route.icon}
+                size={24}
+                color={focused ? "#000000" : "#808080"}
+              />
+            ),
+          }}
+          navigationState={{ index, routes }}
+          renderScene={renderScene}
+          onIndexChange={setIndex}
+          renderTabBar={(props) => (
+            <TabBar
+              {...props}
+              indicatorStyle={{ height: 0 }}
+              style={{
+                backgroundColor: "transparent",
+                shadowColor: "transparent",
+                borderBottomWidth: 1,
+                borderBottomColor: "#cecece",
+                borderTopWidth: 1,
+                borderTopColor: "#cecece",
+              }}
+            />
+          )}
+        />
+      </View>
     </View>
   );
 }
@@ -196,6 +241,9 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: "row",
+  },
+  body: {
+    flex: 1,
   },
   userInfo: {
     flexDirection: "column",

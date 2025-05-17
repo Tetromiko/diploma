@@ -5,7 +5,7 @@ export default function AuthorizationIndex() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/login");
+    router.push("/authorization/login");
   }, [router]);
 
   return null;

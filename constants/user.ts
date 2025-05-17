@@ -2,7 +2,6 @@ import { AVATAR_LIST } from "./avatars";
 
 export default function getUserAvatar(avatarUrl: string) {
   if (!avatarUrl) {
-    // fallback: return the first avatar or a default object if not-found.png does not exist
     return AVATAR_LIST[0] || { uri: "" };
   }
   if (avatarUrl.startsWith("preset_")) {

@@ -1,11 +1,11 @@
-import { RegistrationFormData } from "@/app/authorization/register";
+import { RegistrationFormData } from "@/constants/types";
 import React from "react";
 import { View, Text, StyleSheet, ScrollView, Image } from "react-native";
 
 export interface StepValidationProps {
   onStepValidChange?: (isValid: boolean) => void;
   registrationData: RegistrationFormData;
-  updateRegistrationData: (field: string, value: string) => void;
+  updateRegistrationData: (field: string, value: string[]) => void;
 }
 
 interface RegistrationStepProps {

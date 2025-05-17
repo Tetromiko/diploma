@@ -68,9 +68,10 @@ export default function ExploreScreen() {
   const [randomPosts, setRandomPosts] = useState<PostData[]>([]);
 
   useEffect(() => {
-    getRemoteData("/users/random?limit=10").then((data) =>
-      setRandomUsers(data)
-    );
+    getRemoteData("/users/random?limit=10").then((data) => {
+      console.log("Random users:", data);
+      setRandomUsers(data);
+    });
     getRemoteData("/posts/random?limit=10").then((data) =>
       setRandomPosts(data)
     );
@@ -141,7 +142,9 @@ export default function ExploreScreen() {
                   />
                 );
               }
-              return <Post key={`post-${item.data.id}`} post={item.data} />;
+              return (
+                <Post key={`post-${item.data.id}`} postId={item.data.id} />
+              );
             })
           ) : (
             <View style={{ padding: 16 }}>

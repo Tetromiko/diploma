@@ -12,10 +12,12 @@ import { PostData } from "@/constants/types";
 import getUserAvatar from "@/constants/user";
 import { router } from "expo-router";
 import { ContextMenuContext } from "@/contexts/ContextMenuContext";
-import { getRemoteData } from "@/utils/api";
+import { getRemoteData, postRemoteData } from "@/utils/api";
+import { PostSkeleton } from "./PostSkeleton";
 
 interface PostProps {
-  post: PostData;
+  postId: number;
+  fixedSize?: boolean;
   onMenuPress?: (event: any) => void;
   onClose?: () => void;
 }
@@ -114,7 +116,7 @@ function AttachmentsGrid({ attachments }: { attachments: string[] }) {
                 resizeMode="cover"
               />
               <View style={styles.overlay}>
-                <Text style={styles.overlayText}>+{count - 3}</Text>
+                <Text style={styles.overlayText}>+{count - 4}</Text>
               </View>
             </View>
           ) : (
@@ -131,39 +133,62 @@ function AttachmentsGrid({ attachments }: { attachments: string[] }) {
   return null;
 }
 
-export const Post: React.FC<PostProps> = ({ post, onMenuPress }) => {
+export const Post: React.FC<PostProps> = ({ postId, fixedSize }) => {
   const { showMenu } = useContext(ContextMenuContext);
-  const [liked, setLiked] = useState(post.interactions.includes("like"));
-  const [disliked, setDisliked] = useState(
-    post.interactions.includes("dislike")
-  );
-  const [saved, setSaved] = useState(post.interactions.includes("save"));
+  const [post, setPost] = useState<PostData | null>(null);
+  const [interactions, setInteractions] = useState<string[]>([]);
+  const [initialized, setInitialized] = useState(false);
 
-  function handleDislike() {
-    if (liked) {
-      setLiked(false);
-    }
-    setDisliked(!disliked);
+  useEffect(() => {
+    if (!postId) return;
+    getRemoteData(`/posts/${postId}`).then((data) => {
+      setPost(data);
+      setInteractions(data.interactions || []);
+      setInitialized(true);
+    });
+  }, [postId]);
+
+  useEffect(() => {
+    if (!initialized) return;
+    if (interactions === (post?.interactions || [])) return;
+    postRemoteData(`/posts/${postId}/interactions`, interactions);
+  }, [interactions, initialized, post]);
+
+  function handleSaved() {
+    setInteractions((prev) =>
+      prev.includes("save")
+        ? prev.filter((i) => i !== "save")
+        : [...prev, "save"]
+    );
   }
 
   function handleLike() {
-    if (disliked) {
-      setDisliked(false);
-    }
-    setLiked(!liked);
-  }
-
-  function handleSaved() {
-    setSaved(!saved);
-  }
-
-  useEffect(() => {
-    getRemoteData(`/posts/${post.id}/interactions`).then((data) => {
-      setLiked(data.includes("like"));
-      setDisliked(data.includes("dislike"));
-      setSaved(data.includes("save"));
+    setInteractions((prev) => {
+      const newInteractions = prev.includes("like")
+        ? prev.filter((i) => i !== "like")
+        : [...prev, "like"];
+      if (newInteractions.includes("dislike")) {
+        return newInteractions.filter((i) => i !== "dislike");
+      }
+      return newInteractions;
     });
-  });
+  }
+
+  function handleDislike() {
+    setInteractions((prev) => {
+      const newInteractions = prev.includes("dislike")
+        ? prev.filter((i) => i !== "dislike")
+        : [...prev, "dislike"];
+      if (newInteractions.includes("like")) {
+        return newInteractions.filter((i) => i !== "like");
+      }
+      return newInteractions;
+    });
+  }
+
+  if (!post) {
+    return <PostSkeleton />;
+  }
 
   function handleMenuPress(event: any) {
     const { pageX, pageY } = event.nativeEvent || {};
@@ -187,8 +212,21 @@ export const Post: React.FC<PostProps> = ({ post, onMenuPress }) => {
     });
   }
 
+  if (!post) {
+    return (
+      <View style={styles.container}>
+        <Text>Завантаження...</Text>
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        fixedSize ? { height: "100%" } : { maxHeight: 648 },
+      ]}
+    >
       <View style={styles.header}>
         <View style={styles.userInfo}>
           <TouchableOpacity onPress={() => router.push(`/${post.creator.id}`)}>
@@ -207,30 +245,23 @@ export const Post: React.FC<PostProps> = ({ post, onMenuPress }) => {
       </View>
       <View style={styles.body}>
         <ScrollView
-          contentContainerStyle={styles.postBody}
+          contentContainerStyle={[
+            styles.postBody,
+            fixedSize
+              ? { justifyContent: "space-between", height: "100%" }
+              : {},
+          ]}
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
         >
-          <TouchableOpacity
-            activeOpacity={1}
-            onPress={() => console.log("Post pressed")}
-            onLongPress={() => {
-              console.log("Long press detected");
-            }}
-            delayLongPress={300}
-            style={{ flex: 1 }}
-          >
-            <View>
-              <View style={styles.titleContainer}>
-                <View style={styles.verticalLine} />
-                <Text style={styles.title}>{post?.title || "Title"}</Text>
-              </View>
-              <Text style={styles.text}>{post?.text || "Text"}</Text>
-              {post.attachments && post.attachments.length > 0 && (
-                <AttachmentsGrid attachments={post.attachments} />
-              )}
-            </View>
-          </TouchableOpacity>
+          <View style={styles.titleContainer}>
+            <View style={styles.verticalLine} />
+            <Text style={styles.title}>{post?.title || "Title"}</Text>
+          </View>
+          {post.text ? <Text style={styles.text}>{post.text}</Text> : null}
+          {post.attachments && post.attachments.length > 0 && (
+            <AttachmentsGrid attachments={post.attachments} />
+          )}
         </ScrollView>
       </View>
       <View style={styles.footer}>
@@ -239,14 +270,14 @@ export const Post: React.FC<PostProps> = ({ post, onMenuPress }) => {
             <Octicons
               name="thumbsup"
               size={24}
-              color={liked ? "#91b49d" : "#999"}
+              color={interactions.includes("like") ? "#91b49d" : "#999"}
             />
           </TouchableOpacity>
           <TouchableOpacity style={styles.options} onPress={handleDislike}>
             <Octicons
               name="thumbsdown"
               size={24}
-              color={disliked ? "#e57373" : "#999"}
+              color={interactions.includes("dislike") ? "#e57373" : "#999"}
             />
           </TouchableOpacity>
           <TouchableOpacity
@@ -266,7 +297,7 @@ export const Post: React.FC<PostProps> = ({ post, onMenuPress }) => {
           <Octicons
             name="bookmark"
             size={24}
-            color={saved ? "#f8c125" : "#999"}
+            color={interactions.includes("save") ? "#f8c125" : "#999"}
           />
         </TouchableOpacity>
       </View>
@@ -276,13 +307,11 @@ export const Post: React.FC<PostProps> = ({ post, onMenuPress }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: "#fff",
     borderRadius: 24,
     borderWidth: 1,
     borderColor: "#cecece",
     overflow: "hidden",
-    display: "flex",
     zIndex: 3,
   },
   header: {
@@ -295,9 +324,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   body: {
-    minHeight: 200,
     flex: 1,
-    padding: 12,
+    padding: 16,
   },
   title: {
     fontSize: 16,

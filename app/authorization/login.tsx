@@ -8,7 +8,8 @@ import {
   Image,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { isTokenValid, postRemoteData, setToken } from "@/utils/api";
+import { getRemoteData, postRemoteData } from "@/utils/api";
+import { saveData } from "@/utils/storage";
 
 export default function LoginScreen() {
   const [login, setLogin] = useState("");
@@ -16,14 +17,15 @@ export default function LoginScreen() {
   const router = useRouter();
 
   function loginRequest() {
-    const response = postRemoteData("/authorization/login", {
+    postRemoteData("/authorization/login", {
       login: login,
       password: password,
-    });
-    response.then((res) => {
-      setToken(res.token);
-      if (isTokenValid()) {
+    }).then((response) => {
+      if (response.token) {
+        saveData("token", response.token);
         router.replace("/home");
+      } else {
+        console.error("Registration failed:", response);
       }
     });
   }

@@ -8,12 +8,14 @@ import AvatarStep from "@/components/registration/Steps/AvatarStep";
 import NotInterestedStep from "@/components/registration/Steps/NotInterestedStep";
 import TermsStep from "@/components/registration/Steps/TermsStep";
 import FinishStep from "@/components/registration/Steps/FinishStep";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { clamp } from "react-native-reanimated";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import { RegistrationFormData, RegistrationRequest } from "@/constants/types";
+import { getRemoteData, postRemoteData } from "@/utils/api";
+import { saveData } from "@/utils/storage";
+import { setCurrentUser } from "@/constants/user";
 
 export default function RegisterScreen() {
   const [step, setStep] = useState(1);
@@ -34,22 +36,13 @@ export default function RegisterScreen() {
       age: "",
       country: "",
       interests: [],
+      notInterested: [],
       avatar: "",
     });
 
-  function updateRegistrationData(field: string, value: string) {
+  function updateRegistrationData(field: string, value: any) {
     setRegistrationData((prev) => ({ ...prev, [field]: value }));
   }
-
-  useEffect(() => {
-    // Перевірка токена при завантаженні сторінки
-    (async () => {
-      const token = await AsyncStorage.getItem("token");
-      if (token) {
-        router.replace("/"); // або ваш головний маршрут
-      }
-    })();
-  }, []);
 
   const registrationSteps = [
     <EmailAndPasswordStep
@@ -115,33 +108,27 @@ export default function RegisterScreen() {
   ];
 
   async function submitRegistration() {
-    try {
-      const request: RegistrationRequest = {
-        email: registrationData.email,
-        password: registrationData.password,
-        nickname: registrationData.nickname,
-        fullName: registrationData.fullName,
-        avatar: registrationData.avatar,
-        interests: registrationData.interests,
-        notInterested: registrationData.notInterested,
-      };
+    const request: RegistrationRequest = {
+      email: registrationData.email,
+      password: registrationData.password,
+      nickname: registrationData.nickname,
+      fullName: registrationData.fullName,
+      avatar: registrationData.avatar,
+      interests: registrationData.interests,
+      notInterested: registrationData.notInterested,
+    };
 
-      const response = await fetch(
-        "https://localhost:7232/api/authorization/register",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(request),
-        }
-      );
-      if (!response.ok) throw new Error("Registration failed");
-      const data = await response.json();
-      router.push("/");
-      await AsyncStorage.setItem("token", data.token);
-    } catch (e) {
-      console.error("Registration error:", e);
-      alert("Error during registration. Please try again.");
-    }
+    postRemoteData("/authorization/register", request).then((response) => {
+      if (response.token) {
+        saveData("token", response.token);
+        getRemoteData("/me").then((user) => {
+          setCurrentUser(user);
+        });
+        router.replace("/home");
+      } else {
+        console.error("Registration failed:", response);
+      }
+    });
   }
 
   return (

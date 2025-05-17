@@ -1,5 +1,4 @@
-// перейменовано на NotInterestedStep
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -11,31 +10,7 @@ import {
 import RegistrationStep, { StepValidationProps } from "../RegistrationStep";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import ValidatedInput from "./ValidatedInput";
-
-// Приклад тегів для небажаних інтересів (має бути 100+ у реальному додатку)
-const EXISTING_TAGS = [
-  "спорт",
-  "музика",
-  "кіно",
-  "подорожі",
-  "читання",
-  "програмування",
-  "фотографія",
-  "ігри",
-  "йога",
-  "мода",
-  "технології",
-  "наука",
-  "кулінарія",
-  "авто",
-  "велоспорт",
-  "малювання",
-  "танці",
-  "театри",
-  "тварини",
-  "садівництво",
-  // ... додайте ще теги ...
-];
+import { getRemoteData } from "@/utils/api";
 
 export default function NotInterestedStep(props: StepValidationProps) {
   const [input, setInput] = useState("");
@@ -43,24 +18,41 @@ export default function NotInterestedStep(props: StepValidationProps) {
     (props.registrationData.notInterested ?? []) as string[]
   );
 
-  const filteredSuggestions = useMemo(() => {
-    if (!input.trim()) return [];
-    return EXISTING_TAGS.filter(
-      (tag) =>
-        tag.toLowerCase().includes(input.trim().toLowerCase()) &&
-        !tags.includes(tag)
-    ).slice(0, 10);
+  const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!input.trim()) {
+      setFilteredSuggestions([]);
+      return;
+    }
+
+    let isActive = true;
+    getRemoteData(`/tags?limit=10&filter=${input.trim().toLowerCase()}`).then(
+      (data: string[]) => {
+        if (isActive)
+          setFilteredSuggestions(
+            data.filter(
+              (tag) =>
+                !tags.includes(tag) &&
+                !props.registrationData.interests?.includes(tag)
+            )
+          );
+      }
+    );
+    return () => {
+      isActive = false;
+    };
   }, [input, tags]);
 
   function checkTag(value: string) {
     if (!value || value.trim() === "") {
       return { isValid: false };
     }
+    if (props.registrationData.interests?.includes(value.trim())) {
+      return { isValid: false, message: "Цей тег вже додано в 'Цікавить'" };
+    }
     if (tags.includes(value.trim())) {
       return { isValid: false, message: "Такий тег вже додано" };
-    }
-    if (value.trim().length < 2) {
-      return { isValid: false, message: "Тег має містити мінімум 2 символи" };
     }
     return { isValid: true };
   }
@@ -68,7 +60,7 @@ export default function NotInterestedStep(props: StepValidationProps) {
   function removeTag(tag: string) {
     const newTags = tags.filter((t) => t !== tag);
     setTags(newTags);
-    props.updateRegistrationData("notInterested", newTags as any);
+    props.updateRegistrationData("notInterested", newTags);
   }
 
   function addTag(tag: string) {
@@ -77,7 +69,7 @@ export default function NotInterestedStep(props: StepValidationProps) {
     const newTags = [...tags, trimmedTag];
     setTags(newTags);
     setInput("");
-    props.updateRegistrationData("notInterested", newTags as any);
+    props.updateRegistrationData("notInterested", newTags);
   }
 
   const tagColors = ["#bdbdbd", "#ffcd26", "#fc7e22", "#f287e5"];
@@ -122,6 +114,7 @@ export default function NotInterestedStep(props: StepValidationProps) {
           value={input}
           setValue={setInput}
           onSubmitEditing={() => {
+            if (!checkTag(input).isValid) return;
             addTag(input);
           }}
         />

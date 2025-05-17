@@ -4,7 +4,7 @@ import { Post } from "./Post";
 import { ContextMenuContext } from "@/contexts/ContextMenuContext";
 
 interface PostStackProps {
-  posts: any[];
+  posts: number[];
   onRefresh?: () => void;
 }
 
@@ -58,10 +58,10 @@ export const PostStack: React.FC<PostStackProps> = ({ posts, onRefresh }) => {
         ) : (
           visiblePosts.map((post, i) => (
             <Animated.View
-              key={post.id}
+              key={post}
               style={[styles.card, { top: i * 8, zIndex: 3 - i }]}
             >
-              <Post post={post} />
+              <Post postId={post} fixedSize />
             </Animated.View>
           ))
         )}

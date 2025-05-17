@@ -1,8 +1,9 @@
 import { Tabs, useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Octicons } from "@expo/vector-icons";
 import { IconWithBadge } from "@/components/IconWithBadge";
 import { useSegments } from "expo-router";
+import { getRemoteData } from "@/utils/api";
 
 export default function TabLayout() {
   const segments = useSegments();
@@ -10,6 +11,7 @@ export default function TabLayout() {
   const page = segments[segments.length - 1];
   const pagesToShowTabBar = ["home", "explore", "chats", "profile"];
   const hideTabBar = !pagesToShowTabBar.includes(page);
+  const [messagesActive, setMessagesActive] = useState(false);
 
   const handleTabPress = (route: string) => ({
     tabPress: (e: any) => {
@@ -17,6 +19,12 @@ export default function TabLayout() {
       router.replace(`/${route}`);
     },
   });
+
+  useEffect(() => {
+    getRemoteData("/chats").then((data) => {
+      setMessagesActive(data.length > 0);
+    });
+  }, []);
 
   return (
     <Tabs
@@ -77,7 +85,7 @@ export default function TabLayout() {
               name="mail"
               size={32}
               color={focused ? "#000" : "#949494"}
-              active={true}
+              active={messagesActive}
             />
           ),
         }}

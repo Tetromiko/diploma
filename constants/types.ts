@@ -78,6 +78,12 @@ export interface PostData {
   interactions: string[];
 }
 
+export interface PostRequest {
+  title: string;
+  text: string;
+  attachments: string[];
+}
+
 export interface Interaction {
   id: number;
   type: string;
@@ -93,7 +99,7 @@ export interface RegistrationFormData {
   country: string;
   interests: string[];
   avatar: string;
-  notInterested?: string[];
+  notInterested: string[];
 }
 
 export interface RegistrationRequest {

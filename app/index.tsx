@@ -1,26 +1,18 @@
 import { useEffect } from "react";
-import { router, useRootNavigationState } from "expo-router";
-import { setApiUrl, isTokenValid } from "@/utils/api";
+import { useRootNavigationState, useRouter } from "expo-router";
+import { setApiUrl } from "@/utils/api";
+import { Platform } from "react-native";
+import { setStorageConfiguration } from "@/utils/storage";
 
 export default function Index() {
+  const router = useRouter();
   const rootNavigationState = useRootNavigationState();
 
   useEffect(() => {
     if (!rootNavigationState?.key) return;
 
-    if (__DEV__) {
-      setApiUrl("https://localhost:7232/api");
-    } else {
-      setApiUrl("https://api.example.com");
-    }
-    (async () => {
-      if (isTokenValid()) {
-        router.replace("/home");
-      } else {
-        router.replace("/authorization");
-      }
-    })();
-  }, [rootNavigationState?.key]);
+    router.replace("/home");
+  }, [rootNavigationState]);
 
   return null;
 }
