@@ -19,7 +19,7 @@ export default function AvatarStep(props: StepValidationProps) {
 
   return (
     <RegistrationStep
-      image={require("../../../assets/images/main-character-asks.png")}
+      image={require("@/assets/images/registration/avatar.png")}
       title="Оберіть аватар"
       isStepValid={!!selected}
     >

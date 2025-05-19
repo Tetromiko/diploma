@@ -136,11 +136,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   inputContainer: {
+    height: 48,
     backgroundColor: "#ffffff",
-    borderRadius: 16,
-    padding: 8,
+    borderRadius: 24,
+    paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: "#cecece",
+    justifyContent: "center",
   },
   inputField: {
     color: "#4d4d4d",

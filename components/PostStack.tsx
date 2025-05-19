@@ -10,7 +10,6 @@ interface PostStackProps {
 
 export const PostStack: React.FC<PostStackProps> = ({ posts, onRefresh }) => {
   const [index, setIndex] = useState(0);
-  const { showMenu } = useContext(ContextMenuContext);
 
   const handleSwipe = useCallback(
     (direction: "up" | "down") => {

@@ -47,7 +47,7 @@ export default function TermsStep(props: StepValidationProps) {
 
   return (
     <RegistrationStep
-      image={require("../../../assets/images/main-character-asks.png")}
+      image={require("@/assets/images/registration/rules.png")}
       title="Ознайомтесь з правилами"
       isStepValid={checked}
     >
@@ -86,7 +86,5 @@ const styles = StyleSheet.create({
     borderColor: "#cecece",
     borderRadius: 16,
     padding: 8,
-    scrollbarWidth: "none",
-    msOverflowStyle: "none",
   },
 });

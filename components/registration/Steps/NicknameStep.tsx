@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import ValidatedInput from "./ValidatedInput";
 import RegistrationStep, { StepValidationProps } from "../RegistrationStep";
+import { postRemoteData } from "@/utils/api";
 
 export default function NicknameStep(props: StepValidationProps) {
   const [nicknameValid, setNicknameValid] = useState(false);
 
-  function checkNickname(value: string) {
+  async function checkNickname(value: string) {
     const isCharactersValid = /^[a-zA-Z0-9_]+$/.test(value);
     const isLengthValid = value.length >= 3 && value.length <= 20;
+
     if (!isLengthValid) {
       return { isValid: false, message: "Нікнейм має містити 3-20 символів" };
     }
@@ -18,17 +20,22 @@ export default function NicknameStep(props: StepValidationProps) {
         message: "Нікнейм може містити лише латинські літери, цифри та _",
       };
     }
+
+    const data = await postRemoteData(
+      "/authorization/validate-registration-variable",
+      {
+        type: "nickname",
+        value: value,
+      }
+    );
+
+    if (!data.isValid) {
+      return { isValid: false, message: "Цей нікнейм вже зайнятий" };
+    }
     return { isValid: true };
   }
 
-  useEffect(() => {
-    setNicknameValid(
-      !!props.registrationData.nickname &&
-        checkNickname(props.registrationData.nickname).isValid
-    );
-  }, [props.registrationData.nickname]);
-
-  useEffect(() => {
+  React.useEffect(() => {
     if (props.onStepValidChange) {
       props.onStepValidChange(nicknameValid);
     }
@@ -36,7 +43,7 @@ export default function NicknameStep(props: StepValidationProps) {
 
   return (
     <RegistrationStep
-      image={require("../../../assets/images/main-characters-network.png")}
+      image={require("@/assets/images/registration/nickname.png")}
       title={"Введіть нікнейм"}
       isStepValid={nicknameValid}
     >

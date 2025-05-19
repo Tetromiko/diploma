@@ -1,8 +1,5 @@
 import { useEffect } from "react";
 import { useRootNavigationState, useRouter } from "expo-router";
-import { setApiUrl } from "@/utils/api";
-import { Platform } from "react-native";
-import { setStorageConfiguration } from "@/utils/storage";
 
 export default function Index() {
   const router = useRouter();

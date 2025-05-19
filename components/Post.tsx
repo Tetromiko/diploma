@@ -12,14 +12,15 @@ import { PostData } from "@/constants/types";
 import getUserAvatar from "@/constants/user";
 import { router } from "expo-router";
 import { ContextMenuContext } from "@/contexts/ContextMenuContext";
-import { getRemoteData, postRemoteData } from "@/utils/api";
+import { deleteRemoteData, getRemoteData, postRemoteData } from "@/utils/api";
 import { PostSkeleton } from "./PostSkeleton";
+import { getData } from "@/utils/storage";
 
 interface PostProps {
   postId: number;
   fixedSize?: boolean;
-  onMenuPress?: (event: any) => void;
   onClose?: () => void;
+  onDelete?: () => void;
 }
 
 function AttachmentsGrid({ attachments }: { attachments: string[] }) {
@@ -133,19 +134,65 @@ function AttachmentsGrid({ attachments }: { attachments: string[] }) {
   return null;
 }
 
-export const Post: React.FC<PostProps> = ({ postId, fixedSize }) => {
+export const Post: React.FC<PostProps> = ({ postId, fixedSize, onDelete }) => {
   const { showMenu } = useContext(ContextMenuContext);
   const [post, setPost] = useState<PostData | null>(null);
   const [interactions, setInteractions] = useState<string[]>([]);
   const [initialized, setInitialized] = useState(false);
+  const [isMine, setIsMine] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const foreignPostMenuOptions = [
+    {
+      label: "Поскаржитись",
+      onPress: () => alert("Поскаржитись"),
+    },
+    {
+      label: "Чому я це бачу?",
+      onPress: () => alert("Чому я це бачу?"),
+    },
+    {
+      label: "Нецікаво",
+      onPress: () => alert("Нецікаво"),
+    },
+  ];
+
+  const myPostMenuOptions = [
+    {
+      label: "Редагувати",
+      onPress: () => alert("Редагувати пост"),
+    },
+    {
+      label: "Видалити",
+      onPress: async () => {
+        await deleteRemoteData(`/posts/${postId}`);
+        console.log("Post deleted");
+        onDelete?.();
+      },
+    },
+  ];
 
   useEffect(() => {
     if (!postId) return;
-    getRemoteData(`/posts/${postId}`).then((data) => {
-      setPost(data);
-      setInteractions(data.interactions || []);
-      setInitialized(true);
-    });
+    setIsLoading(true);
+    getRemoteData<PostData>(`/posts/${postId}`)
+      .then((data) => {
+        setPost(data);
+        setInteractions(data.interactions || []);
+        setInitialized(true);
+        getData<string>("token").then((token) => {
+          if (!token) {
+            setIsMine(false);
+            return;
+          }
+          const payload = JSON.parse(atob(token.split(".")[1]));
+          const userId = payload.nameid;
+          setIsMine(data.creator?.id == userId);
+        });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [postId]);
 
   useEffect(() => {
@@ -186,29 +233,19 @@ export const Post: React.FC<PostProps> = ({ postId, fixedSize }) => {
     });
   }
 
-  if (!post) {
+  if (isLoading) {
     return <PostSkeleton />;
   }
 
   function handleMenuPress(event: any) {
     const { pageX, pageY } = event.nativeEvent || {};
+
+    const options = isMine ? myPostMenuOptions : foreignPostMenuOptions;
+
     showMenu({
       x: pageX ?? 0,
       y: pageY ?? 0,
-      menuOptions: [
-        {
-          label: "Поскаржитись",
-          onPress: () => alert("Поскаржитись"),
-        },
-        {
-          label: "Чому я це бачу?",
-          onPress: () => alert("Чому я це бачу?"),
-        },
-        {
-          label: "Нецікаво",
-          onPress: () => alert("Нецікаво"),
-        },
-      ],
+      menuOptions: options,
     });
   }
 
@@ -254,11 +291,13 @@ export const Post: React.FC<PostProps> = ({ postId, fixedSize }) => {
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
         >
-          <View style={styles.titleContainer}>
-            <View style={styles.verticalLine} />
-            <Text style={styles.title}>{post?.title || "Title"}</Text>
+          <View>
+            <View style={styles.titleContainer}>
+              <View style={styles.verticalLine} />
+              <Text style={styles.title}>{post?.title || "Title"}</Text>
+            </View>
+            {post.text ? <Text style={styles.text}>{post.text}</Text> : null}
           </View>
-          {post.text ? <Text style={styles.text}>{post.text}</Text> : null}
           {post.attachments && post.attachments.length > 0 && (
             <AttachmentsGrid attachments={post.attachments} />
           )}

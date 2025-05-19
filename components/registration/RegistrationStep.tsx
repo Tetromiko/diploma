@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, ScrollView, Image } from "react-native";
 export interface StepValidationProps {
   onStepValidChange?: (isValid: boolean) => void;
   registrationData: RegistrationFormData;
-  updateRegistrationData: (field: string, value: string[]) => void;
+  updateRegistrationData: (field: string, value: any) => void;
 }
 
 interface RegistrationStepProps {

@@ -30,7 +30,7 @@ export default function FullNameStep(props: StepValidationProps) {
 
   return (
     <RegistrationStep
-      image={require("../../../assets/images/main-character-asks.png")}
+      image={require("@/assets/images/registration/name.png")}
       title="Введіть повне ім'я"
       isStepValid={valid}
     >

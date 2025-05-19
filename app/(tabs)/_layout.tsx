@@ -13,16 +13,9 @@ export default function TabLayout() {
   const hideTabBar = !pagesToShowTabBar.includes(page);
   const [messagesActive, setMessagesActive] = useState(false);
 
-  const handleTabPress = (route: string) => ({
-    tabPress: (e: any) => {
-      e.preventDefault();
-      router.replace(`/${route}`);
-    },
-  });
-
   useEffect(() => {
     getRemoteData("/chats").then((data) => {
-      setMessagesActive(data.length > 0);
+      //setMessagesActive(data.length > 0);
     });
   }, []);
 
@@ -62,7 +55,6 @@ export default function TabLayout() {
             />
           ),
         }}
-        listeners={handleTabPress("home")}
       />
       <Tabs.Screen
         name="explore"
@@ -75,7 +67,6 @@ export default function TabLayout() {
             />
           ),
         }}
-        listeners={handleTabPress("explore")}
       />
       <Tabs.Screen
         name="chats"
@@ -89,7 +80,6 @@ export default function TabLayout() {
             />
           ),
         }}
-        listeners={handleTabPress("chats")}
       />
       <Tabs.Screen
         name="profile"
@@ -102,7 +92,6 @@ export default function TabLayout() {
             />
           ),
         }}
-        listeners={handleTabPress("profile")}
       />
     </Tabs>
   );

@@ -9,7 +9,7 @@ export default function FinishStep(props: StepValidationProps) {
 
   return (
     <RegistrationStep
-      image={require("../../../assets/images/main-character-asks.png")}
+      image={require("@/assets/images/registration/successful-registration.png")}
       title="Реєстрацію завершено!"
       isStepValid={true}
     >

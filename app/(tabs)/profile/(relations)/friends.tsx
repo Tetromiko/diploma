@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   body: {
-    gap: 16,
+    gap: 8,
     padding: 16,
   },
   button: {

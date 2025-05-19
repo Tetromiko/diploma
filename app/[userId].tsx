@@ -7,14 +7,16 @@ import {
   TouchableOpacity,
   FlatList,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { Octicons, Ionicons } from "@expo/vector-icons";
 import { useRouter, Stack } from "expo-router";
 import { Post } from "@/components/Post";
-import { getRemoteData, patchRemoteData, postRemoteData } from "@/utils/api";
-import { PostData, UserData, UserPublicFull } from "@/constants/types";
+import { getRemoteData, patchRemoteData } from "@/utils/api";
+import { PostData, UserPublic, UserPublicFull } from "@/constants/types";
 import getUserAvatar from "@/constants/user";
+import { useIsFocused } from "@react-navigation/native";
 
 export default function ProfileScreen() {
   const { userId } = useLocalSearchParams();
@@ -22,30 +24,60 @@ export default function ProfileScreen() {
   const [user, setUser] = useState<UserPublicFull | null>(null);
   const [posts, setPosts] = useState<PostData[]>([]);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [userLoading, setUserLoading] = useState(true);
+  const isFocused = useIsFocused();
 
   useEffect(() => {
-    getRemoteData(`/users/${userId}`).then((data) => {
-      setUser(data);
-      console.log("User data:", data);
+    fetchData();
+  }, [isFocused]);
+
+  async function fetchData() {
+    setUserLoading(true);
+    await Promise.all([
+      getRemoteData(`/users/${userId}`).then((data) => {
+        setUser(data);
+        console.log("User data:", data);
+      }),
+      getRemoteData(`/me/relations?type=following`).then((followings) => {
+        const followingIds = followings.map((user: UserPublic) => user.id);
+        getRemoteData(`/me/relations?type=friends`).then((friends) => {
+          const friendIds = friends.map((user: UserPublic) => user.id);
+          setIsSubscribed(
+            followingIds.includes(Number(userId)) ||
+              friendIds.includes(Number(userId))
+          );
+        });
+      }),
+      getRemoteData<PostData[]>(`/users/${userId}/posts`).then((data) => {
+        setPosts(data);
+      }),
+    ]).then(() => {
+      setTimeout(() => {
+        setUserLoading(false);
+      }, 500);
     });
-    getRemoteData(`/me/relations?type=following`).then((followings) => {
-      const followingIds = followings.map((user: UserData) => user.id);
-      getRemoteData(`/me/relations?type=friends`).then((friends) => {
-        const friendIds = friends.map((user: UserData) => user.id);
-        setIsSubscribed(
-          followingIds.includes(Number(userId)) ||
-            friendIds.includes(Number(userId))
-        );
-      });
-    });
-    getRemoteData<PostData[]>(`/users/${userId}/posts`).then((data) => {
-      setPosts(data);
-    });
-  }, []);
+  }
+
+  useEffect(() => {}, []);
 
   function toggleSubscriptionState(state: boolean) {
     setIsSubscribed(!state);
     patchRemoteData(`/users/${userId}/follow`, !state);
+  }
+
+  if (userLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#f6f6f6",
+        }}
+      >
+        <ActivityIndicator size="large" color="#cecece" />
+      </View>
+    );
   }
 
   return (

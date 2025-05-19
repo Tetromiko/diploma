@@ -53,10 +53,10 @@ export default function ChatView() {
   }, [chat]);
 
   const handleSend = async () => {
-    if (message.trim() === "") return; // Не відправляти порожнє повідомлення
+    if (message.trim() === "") return;
 
     try {
-      await postRemoteData(`/messages/${chatId}`, { text: message }); // Відправка тексту на сервер
+      await postRemoteData(`/messages/${chatId}`, { text: message });
       setMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
@@ -86,7 +86,6 @@ export default function ChatView() {
           <View style={styles.chatInfo}>
             <TouchableOpacity
               onPress={() => {
-                //open group info or user page
                 if (chat?.info.type === "group") {
                   router.push(`/chats/${chatId}/info`);
                 } else if (chat?.info.type === "private") {

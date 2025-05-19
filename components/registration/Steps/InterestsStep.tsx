@@ -84,7 +84,7 @@ export default function InterestsStep(props: StepValidationProps) {
 
   return (
     <RegistrationStep
-      image={require("../../../assets/images/main-character-asks.png")}
+      image={require("@/assets/images/registration/interests.png")}
       title="Вкажіть ваші інтереси"
       isStepValid={tags.length > 0}
     >

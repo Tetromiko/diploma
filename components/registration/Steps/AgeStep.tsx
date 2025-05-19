@@ -30,7 +30,7 @@ export default function AgeStep(props: StepValidationProps) {
 
   return (
     <RegistrationStep
-      image={require("../../../assets/images/main-character-asks.png")}
+      image={require("@/assets/images/registration/age.png")}
       title="Вкажіть ваш вік"
       isStepValid={valid}
     >

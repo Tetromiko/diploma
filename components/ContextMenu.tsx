@@ -6,6 +6,7 @@ import {
   StyleSheet,
   LayoutChangeEvent,
   Dimensions,
+  TouchableOpacity,
 } from "react-native";
 
 interface ContextMenuProps {
@@ -43,7 +44,14 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   }, []);
 
   return (
-    <Pressable style={styles.menuOverlay} onPress={onClose}>
+    <Pressable
+      style={styles.menuOverlay}
+      onPress={onClose}
+      onContextMenu={(e) => {
+        e.preventDefault?.();
+        return false;
+      }}
+    >
       <View
         onLayout={handleLayout}
         style={[
@@ -66,27 +74,38 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
               },
         ]}
       >
-        {menuOptions.map((option, index) => (
-          <React.Fragment key={index}>
-            <Pressable
-              style={[
-                styles.menuOption,
-                option.style,
-                index < menuOptions.length - 1 && {
-                  borderBottomWidth: 1,
-                  borderBottomColor: "#cecece",
-                },
-              ]}
-              onPress={() => {
-                option.onPress();
-                onClose();
-              }}
+        {menuOptions.map((option, idx) => (
+          <TouchableOpacity
+            key={option.label + idx}
+            onPress={() => {
+              option.onPress();
+              onClose();
+            }}
+            style={[
+              styles.menuOption,
+              option.style,
+              idx < menuOptions.length - 1 && {
+                borderBottomWidth: 1,
+                borderBottomColor: "#cecece",
+              },
+            ]}
+            // Заборона контекстного меню браузера для web
+            {...(typeof window !== "undefined"
+              ? {
+                  onContextMenu: (e: any) => {
+                    e.preventDefault?.();
+                    return false;
+                  },
+                }
+              : {})}
+          >
+            <Text
+              style={[styles.menuOptionText, option.style]}
+              selectable={false}
             >
-              <Text style={[styles.menuOptionText, option.style]}>
-                {option.label}
-              </Text>
-            </Pressable>
-          </React.Fragment>
+              {option.label}
+            </Text>
+          </TouchableOpacity>
         ))}
       </View>
     </Pressable>

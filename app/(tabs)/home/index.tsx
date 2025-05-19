@@ -10,7 +10,7 @@ import { getRemoteData } from "@/utils/api";
 import { PostData } from "@/constants/types";
 
 const FEED_OPTIONS = [
-  { key: "Home", label: "Delagram" },
+  { key: "Home", label: "Rozmovka" },
   { key: "Following", label: "Following" },
   {
     key: "Friends",
@@ -27,11 +27,11 @@ export default function HomeScreen() {
   const [notificationsActive, setNotificationsActive] = useState(false);
 
   function changeFeed(key: string) {
-    getRemoteData(`/posts/feed?category=${key.toLowerCase()}&limit=${5}`).then(
-      (data) => {
-        setPosts(data.map((post: PostData) => post.id));
-      }
-    );
+    getRemoteData(
+      `/posts/feed?category=${key.toLowerCase()}&limit=${100}`
+    ).then((data) => {
+      setPosts(data.map((post: PostData) => post.id));
+    });
   }
 
   function getNotificationsState() {

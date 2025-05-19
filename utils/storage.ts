@@ -10,7 +10,9 @@ export function setStorageConfiguration(config: { platform: string }) {
 
 export async function saveData<T>(key: string, data: T) {
   if (storageConfiguration.platform === "web") {
-    localStorage.setItem(key, JSON.stringify(data));
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.setItem(key, JSON.stringify(data));
+    }
   } else {
     await AsyncStorage.setItem(key, JSON.stringify(data));
   }
@@ -18,8 +20,11 @@ export async function saveData<T>(key: string, data: T) {
 
 export async function getData<T>(key: string): Promise<T | null> {
   if (storageConfiguration.platform === "web") {
-    const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : null;
+    if (typeof window !== "undefined" && window.localStorage) {
+      const data = window.localStorage.getItem(key);
+      return data ? JSON.parse(data) : null;
+    }
+    return null;
   } else {
     const data = await AsyncStorage.getItem(key);
     return data ? JSON.parse(data) : null;
@@ -28,7 +33,9 @@ export async function getData<T>(key: string): Promise<T | null> {
 
 export function removeData(key: string) {
   if (storageConfiguration.platform === "web") {
-    localStorage.removeItem(key);
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem(key);
+    }
   } else {
     AsyncStorage.removeItem(key);
   }

@@ -83,7 +83,7 @@ export default function NotInterestedStep(props: StepValidationProps) {
 
   return (
     <RegistrationStep
-      image={require("../../../assets/images/main-character-asks.png")}
+      image={require("@/assets/images/registration/interests.png")}
       title="Що вам не цікаво?"
       isStepValid={true}
     >

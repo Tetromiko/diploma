@@ -10,8 +10,8 @@ import {
 } from "react-native";
 import { AntDesign, Octicons } from "@expo/vector-icons";
 import { Post } from "@/components/Post";
-import { getRemoteData } from "@/utils/api";
-import { useFocusEffect } from "@react-navigation/native";
+import { deleteRemoteData, getRemoteData } from "@/utils/api";
+import { useIsFocused } from "@react-navigation/native";
 import getUserAvatar from "@/constants/user";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 import { UserPublic } from "@/constants/types";
@@ -35,11 +35,18 @@ export default function ProfileScreen() {
   const [index, setIndex] = useState(0);
   const [routes] = useState(categories);
   const [userLoading, setUserLoading] = useState(true);
-  const params = useLocalSearchParams();
+  const isFocused = useIsFocused();
+  var updatePage = useLocalSearchParams().updatePage;
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const fetchData = useCallback(() => {
+  useEffect(() => {
+    console.log("User data:", userData);
+    fetchData();
+  }, [isFocused, updatePage, refreshKey]);
+
+  async function fetchData() {
     setUserLoading(true);
-    Promise.all([
+    await Promise.all([
       getRemoteData("/me").then((data) => setUserData(data)),
       getRemoteData("/me/interactions?type=create").then(setCreatedPosts),
       getRemoteData("/me/interactions?type=like").then(setLikedPosts),
@@ -54,13 +61,11 @@ export default function ProfileScreen() {
         setFollowersCount(data.length);
       }),
     ]).then(() => {
-      setTimeout(() => setUserLoading(false), 500); // затримка перед setUserLoading(false)
+      setTimeout(() => {
+        setUserLoading(false);
+      }, 500);
     });
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
+  }
 
   React.useEffect(() => {
     if (index === 0) {
@@ -91,7 +96,22 @@ export default function ProfileScreen() {
         ) : (
           posts.map((item) => (
             <View style={styles.postWrapper} key={item.id}>
-              <Post postId={item.id} />
+              <Post
+                postId={item.id}
+                key={item.id}
+                onDelete={async () => {
+                  setCreatedPosts((prev) =>
+                    prev.filter((post) => post.id !== item.id)
+                  );
+                  setLikedPosts((prev) =>
+                    prev.filter((post) => post.id !== item.id)
+                  );
+                  setSavedPosts((prev) =>
+                    prev.filter((post) => post.id !== item.id)
+                  );
+                  setRefreshKey((k) => k + 1);
+                }}
+              />
             </View>
           ))
         )}
@@ -99,7 +119,7 @@ export default function ProfileScreen() {
     );
   }
 
-  if (userLoading || !userData) {
+  if (userLoading) {
     return (
       <View
         style={{
@@ -184,6 +204,7 @@ export default function ProfileScreen() {
           commonOptions={{
             icon: ({ route, focused }) => (
               <Octicons
+                // @ts-ignore
                 name={route.icon}
                 size={24}
                 color={focused ? "#000000" : "#808080"}

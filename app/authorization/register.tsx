@@ -15,7 +15,6 @@ import { router } from "expo-router";
 import { RegistrationFormData, RegistrationRequest } from "@/constants/types";
 import { getRemoteData, postRemoteData } from "@/utils/api";
 import { saveData } from "@/utils/storage";
-import { setCurrentUser } from "@/constants/user";
 
 export default function RegisterScreen() {
   const [step, setStep] = useState(1);
@@ -121,9 +120,6 @@ export default function RegisterScreen() {
     postRemoteData("/authorization/register", request).then((response) => {
       if (response.token) {
         saveData("token", response.token);
-        getRemoteData("/me").then((user) => {
-          setCurrentUser(user);
-        });
         router.replace("/home");
       } else {
         console.error("Registration failed:", response);
@@ -155,10 +151,18 @@ export default function RegisterScreen() {
         <TouchableOpacity
           style={[styles.button, !stepValid && styles.buttonDisabled]}
           onPress={
-            step === registrationSteps.length ? submitRegistration : nextStep
+            step === registrationSteps.length
+              ? submitRegistration
+              : stepValid
+              ? nextStep
+              : undefined
           }
         >
-          <Text style={styles.buttonText}>Далі</Text>
+          <Text
+            style={[styles.buttonText, !stepValid && styles.buttonTextDisabled]}
+          >
+            Далі
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

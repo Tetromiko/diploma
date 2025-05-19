@@ -48,3 +48,45 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+# Структура проєкту
+
+```
+/app                # Основна папка з усіма екранами та роутами (file-based routing)
+  /home             # Головна стрічка, сповіщення
+  /explore          # Пошук користувачів і постів
+  /chats            # Чати, список чатів, перегляд чату
+  /profile          # Профіль користувача, налаштування, створення посту
+  /authorization    # Екрани авторизації та реєстрації
+  /[userId]         # Динамічний маршрут для перегляду профілю іншого користувача
+  _layout.tsx       # Головний layout для роутів
+  (tabs)/_layout.tsx# Layout для табів (нижня навігація)
+  index.tsx         # Початковий екран
+
+/components         # Повторно використовувані компоненти (Post, Chat, UserWithButton, ContextMenu тощо)
+
+/constants          # Константи, типи, статичні дані
+
+/contexts           # React Context API (наприклад, ContextMenuContext, AuthentificationContext)
+
+/utils              # Допоміжні функції (api, storage, тощо)
+
+/assets             # Статичні ресурси: зображення, шрифти
+
+/scripts            # Скрипти для обслуговування проєкту (наприклад, reset-project.js)
+
+package.json        # Залежності, скрипти, конфігурація npm
+README.md           # Документація проєкту
+```
+
+- **app/** — містить усі екрани, згруповані за вкладками та сторінками. Використовується file-based routing Expo Router.
+- **components/** — універсальні UI-компоненти, які використовуються на різних екранах.
+- **constants/** — типи TypeScript, константи, статичні списки.
+- **contexts/** — глобальні контексти для стану (меню, автентифікація тощо).
+- **utils/** — утиліти для роботи з API, локальним сховищем, тощо.
+- **assets/** — картинки, іконки, шрифти.
+- **scripts/** — допоміжні скрипти для розробки.
+- **package.json** — залежності та налаштування проєкту.
+- **README.md** — документація.
+
+> Основна логіка навігації та сторінок знаходиться у папці **app/**, а всі повторно використовувані частини — у **components/**.

@@ -4,14 +4,25 @@ import React, { useEffect, useState } from "react";
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
 import UserWithButton from "@/components/UserWithButton";
 import { UserPublic } from "@/constants/types";
-import { getRemoteData } from "@/utils/api";
+import { getRemoteData, patchRemoteData, postRemoteData } from "@/utils/api";
 
 export default function FollowingScreen() {
   const [users, setUsers] = useState<UserPublic[] | null>(null);
+  const [unsubscribedIds, setUnsubscribedIds] = useState<number[]>([]);
 
   useEffect(() => {
     getRemoteData(`/me/relations?type=following`).then(setUsers);
   }, []);
+
+  async function handleUnsubscribe(userId: number) {
+    patchRemoteData(`/users/${userId}/follow`, false);
+    setUnsubscribedIds((prev) => [...prev, userId]);
+  }
+
+  async function handleSubscribe(userId: number) {
+    patchRemoteData(`/users/${userId}/follow`, true);
+    setUnsubscribedIds((prev) => prev.filter((id) => id !== userId));
+  }
 
   return (
     <View style={styles.container}>
@@ -29,22 +40,36 @@ export default function FollowingScreen() {
       </View>
       <View style={styles.body}>
         {users && users.length > 0 ? (
-          users.map((user) => (
-            <UserWithButton
-              key={user.id}
-              userId={user.id}
-              button={
-                <TouchableOpacity
-                  style={styles.button}
-                  onPress={() => {
-                    alert(`Ви більше не підписані на ${user.fullName}`);
-                  }}
-                >
-                  <Text style={styles.buttonText}>Відписатись</Text>
-                </TouchableOpacity>
-              }
-            />
-          ))
+          users.map((user) => {
+            const isSubscribed = !unsubscribedIds.includes(user.id);
+            return (
+              <UserWithButton
+                key={user.id}
+                userId={user.id}
+                button={
+                  isSubscribed ? (
+                    <TouchableOpacity
+                      style={styles.button}
+                      onPress={() => handleUnsubscribe(user.id)}
+                    >
+                      <Text style={styles.buttonText}>Відписатись</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      style={[styles.button, styles.buttonInactive]}
+                      onPress={() => handleSubscribe(user.id)}
+                    >
+                      <Text
+                        style={[styles.buttonText, styles.buttonInactiveText]}
+                      >
+                        Підписатись
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                }
+              />
+            );
+          })
         ) : (
           <View style={{ padding: 16, alignItems: "center" }}>
             <Text style={{ color: "#7b7b7b" }}>Підписок немає</Text>
@@ -84,7 +109,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   body: {
-    gap: 16,
+    gap: 8,
     padding: 16,
   },
   button: {
@@ -100,5 +125,13 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "500",
+  },
+  buttonInactive: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#cecece",
+  },
+  buttonInactiveText: {
+    color: "#7b7b7b",
   },
 });

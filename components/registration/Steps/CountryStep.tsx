@@ -49,22 +49,25 @@ export default function CountryStep(props: StepValidationProps) {
   }, [props.registrationData.country]);
 
   useEffect(() => {
+    setInputValue(props.registrationData.country || "");
+    if (COUNTRIES.includes(props.registrationData.country || "")) {
+      setTouched(false);
+    }
+  }, [props.registrationData.country]);
+
+  useEffect(() => {
     props.onStepValidChange?.(valid);
   }, [valid, props.onStepValidChange]);
 
-  useEffect(() => {
-    setInputValue(props.registrationData.country || "");
-  }, [props.registrationData.country]);
-
-  // expo-router@4.0.20 is installed, but the expected version is ~4.0.21.
-  // To fix this warning, run:
-  // npm install expo-router@~4.0.21
-  // or
-  // yarn add expo-router@~4.0.21
+  const showDropdown =
+    touched &&
+    filteredCountries.length > 0 &&
+    inputValue.length > 0 &&
+    !COUNTRIES.includes(inputValue);
 
   return (
     <RegistrationStep
-      image={require("../../../assets/images/main-character-asks.png")}
+      image={require("@/assets/images/registration/country.png")}
       title="Оберіть країну проживання"
       isStepValid={valid}
     >
@@ -76,17 +79,19 @@ export default function CountryStep(props: StepValidationProps) {
           setValue={(v) => {
             setInputValue(v);
             props.updateRegistrationData("country", v);
+            setTouched(true);
           }}
           onValueChange={() => setTouched(true)}
           onSubmitEditing={() => {
             const isValid = checkCountry(inputValue).isValid;
             setValid(isValid);
+            setTouched(false);
             if (isValid) {
               props.updateRegistrationData("country", inputValue);
             }
           }}
         />
-        {touched && filteredCountries.length > 0 && inputValue.length > 0 && (
+        {showDropdown && (
           <View style={styles.dropdown}>
             <FlatList
               data={filteredCountries}
@@ -106,9 +111,6 @@ export default function CountryStep(props: StepValidationProps) {
               keyboardShouldPersistTaps="handled"
             />
           </View>
-        )}
-        {!valid && touched && (
-          <Text style={styles.errorText}>Оберіть країну</Text>
         )}
       </View>
     </RegistrationStep>

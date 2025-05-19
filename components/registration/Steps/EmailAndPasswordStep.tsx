@@ -1,13 +1,38 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { StyleSheet, View, TouchableOpacity, Text } from "react-native";
 import ValidatedInput from "./ValidatedInput";
 import RegistrationStep, { StepValidationProps } from "../RegistrationStep";
 import { router } from "expo-router";
+import { postRemoteData } from "@/utils/api";
 
 export default function EmailAndPasswordStep(props: StepValidationProps) {
   const [emailValid, setEmailValid] = useState(false);
   const [passwordValid, setPasswordValid] = useState(false);
   const [confirmPasswordValid, setConfirmPasswordValid] = useState(false);
+
+  async function checkEmail(value: string) {
+    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    if (!isEmailValid) {
+      return {
+        isValid: false,
+        message: "Введіть коректну електронну пошту",
+      };
+    }
+    const response = await postRemoteData<{
+      isValid: boolean;
+      message: string;
+    }>("/authorization/validate-registration-variable", {
+      type: "email",
+      value: value,
+    });
+    if (!response.isValid) {
+      return {
+        isValid: false,
+        message: "Ця електронна пошта вже використовується іншим користувачем",
+      };
+    }
+    return { isValid: true };
+  }
 
   function checkPassword(value: string) {
     const isLengthValid = value.length >= 8;
@@ -15,7 +40,7 @@ export default function EmailAndPasswordStep(props: StepValidationProps) {
     const isLowerCaseValid = /[a-z]/.test(value);
     const isNumberValid = /\d/.test(value);
     const isSpecialCharacterValid = /[!@#$%^&*(),.?":{}|<>]/.test(value);
-    const isLatinValid = /^[a-zA-Z0-9!@#$%^&*(),.?":{}|<>]+$/.test(value); // Перевірка на латинські символи
+    const isLatinValid = /^[a-zA-Z0-9!@#$%^&*(),.?":{}|<>]+$/.test(value);
     if (!isLatinValid) {
       return {
         isValid: false,
@@ -47,37 +72,7 @@ export default function EmailAndPasswordStep(props: StepValidationProps) {
     return { isValid: true };
   }
 
-  function checkEmail(value: string) {
-    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-    if (!isEmailValid) {
-      return { isValid: false, message: "Введіть коректну електронну пошту" };
-    }
-    return { isValid: true };
-  }
-
-  useEffect(() => {
-    setEmailValid(
-      !!props.registrationData.email &&
-        checkEmail(props.registrationData.email).isValid
-    );
-    setPasswordValid(
-      !!props.registrationData.password &&
-        checkPassword(props.registrationData.password).isValid
-    );
-    setConfirmPasswordValid(
-      !!props.registrationData.confirmPassword &&
-        checkConfirmPassword(
-          props.registrationData.confirmPassword,
-          props.registrationData.password
-        ).isValid
-    );
-  }, [
-    props.registrationData.email,
-    props.registrationData.password,
-    props.registrationData.confirmPassword,
-  ]);
-
-  useEffect(() => {
+  React.useEffect(() => {
     if (props.onStepValidChange) {
       props.onStepValidChange(
         emailValid && passwordValid && confirmPasswordValid
@@ -92,7 +87,7 @@ export default function EmailAndPasswordStep(props: StepValidationProps) {
 
   return (
     <RegistrationStep
-      image={require("../../../assets/images/login.png")}
+      image={require("@/assets/images/registration/log-in-register.png")}
       title={"Введіть електронну пошту та пароль"}
       isStepValid={emailValid && passwordValid && confirmPasswordValid}
     >

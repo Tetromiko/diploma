@@ -22,14 +22,12 @@ export interface PrivateChatData extends ChatData {
   user: UserPreview;
 }
 
-// Користувачі
 export interface UserPreview {
   id: number;
   avatarUrl?: string;
   nickname?: string;
 }
 
-// UserPublic (C# class analogue)
 export interface UserPublic {
   id: number;
   nickname: string;
@@ -54,18 +52,6 @@ export interface Relation {
 export interface UserFull extends UserPublicFull {
   password: string;
   email: string;
-}
-
-export interface UserData {
-  id: string;
-  nickname: string;
-  fullName: string;
-  avatarUrl: string;
-  description: string;
-  role: string;
-  updatedAt: string;
-  createdAt: string;
-  posts: PostData[];
 }
 
 export interface PostData {
@@ -113,7 +99,7 @@ export interface RegistrationRequest {
 }
 
 export interface MessageData {
-  id: string;
+  id: number;
   text: string;
   createdAt: Date;
   attachments: string[];
